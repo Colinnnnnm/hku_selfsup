@@ -1,0 +1,7 @@
+*.DS_store
+*.ipynb_checkpoints/
+dataset/cat_dog/train_set
+dataset/cat_dog/test_set
+dataset/cat_dog/data
+dataset/cat_dog/data.zip
+*.zip
