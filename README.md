@@ -12,3 +12,4 @@
 ## To contribute to the repository:
 - Clone the repository first
 - Create your own branch ```git branch [your_branch_name]; git checkout [your_branch_name]```
+- Add, Commit and Push your change. After that create a pull request to the main branch
