@@ -189,7 +189,6 @@ class SamClassifier(nn.Module):
                 num_heads=encoder_num_heads,
                 patch_size=vit_patch_size,
                 qkv_bias=True,
-                use_abs_pos=False,
                 use_rel_pos=True,
                 global_attn_indexes=encoder_global_attn_indexes,
                 window_size=14,
@@ -219,10 +218,6 @@ class SamClassifier(nn.Module):
         self.loss = loss
         self.global_avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.classifier = nn.Linear(prompt_embed_dim, num_classes)
-        if pretrained:
-            init_pretrained_weights(self.sam, model_urls['sam'])
-            for params in self.sam.parameters(recurse=True):
-                params.require_grad = False
 
     def forward(self, x):
         f = self.sam(x)
@@ -243,5 +238,7 @@ class SamClassifier(nn.Module):
 
 
 def sam(num_classes, loss='softmax', pretrained=True, **kwargs):
-    model = SamClassifier(num_classes, loss, pretrained, **kwargs)
+    model = SamClassifier(num_classes, loss, pretrained, **kwargs) # resize the image and use absolute pos
+    if pretrained:
+        init_pretrained_weights(model.sam, model_urls['sam'])
     return model

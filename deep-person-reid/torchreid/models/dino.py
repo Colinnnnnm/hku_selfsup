@@ -317,17 +317,10 @@ class Dino(nn.Module):
             self,
             num_classes,
             loss='softmax',
-            pretrained=True,
             patch_size=14,
             **kwargs
     ):
         super(Dino, self).__init__()
-        self.conv = nn.Conv2d(
-            3,
-            3,
-            kernel_size=(5,3),
-            bias=False
-        )
         self.dino = DinoVisionTransformer(
             img_size = 518,
             patch_size=patch_size,
@@ -340,13 +333,8 @@ class Dino(nn.Module):
         )
         self.loss = loss
         self.classifier = nn.Linear(768, num_classes)
-        if pretrained:
-            init_pretrained_weights(self.dino, model_urls["dinov2_b"])
-            for params in self.dino.parameters(recurse=True):
-                params.require_grad = False
 
     def forward(self, x):
-        x = self.conv(x)
         v = self.dino(x)
 
         if not self.training:
@@ -368,5 +356,9 @@ def init_pretrained_weights(model, model_url):
 
 
 def dino(num_classes, loss='softmax', pretrained=True, **kwargs):
-    model = Dino(num_classes, loss, pretrained, **kwargs)
+    model = Dino(num_classes, loss, **kwargs)
+    if pretrained:
+        init_pretrained_weights(model.dino, model_urls["dinov2_b"])
+        #for params in model.dino.parameters(recurse=True):
+        #    params.require_grad = False # unfreeze with top 2 only layers and fc layer, the very last step
     return model

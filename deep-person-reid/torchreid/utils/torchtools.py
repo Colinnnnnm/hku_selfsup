@@ -214,11 +214,11 @@ def open_specified_layers(model, open_layers):
     for name, module in model.named_children():
         if name in open_layers:
             module.train()
-            for p in module.parameters():
+            for p in module.parameters(recurse=True):
                 p.requires_grad = True
         else:
             module.eval()
-            for p in module.parameters():
+            for p in module.parameters(recurse=True):
                 p.requires_grad = False
 
 

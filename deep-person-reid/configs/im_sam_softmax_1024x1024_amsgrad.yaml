@@ -1,16 +1,16 @@
 model:
-  name: 'dino'
+  name: 'sam'
   pretrained: True
 
 data:
   type: 'image'
   sources: ['market1501']
   targets: ['market1501']
-  height: 256
-  width: 128
+  height: 1024
+  width: 1024
   combineall: False
   transforms: ['random_flip']
-  save_dir: 'log/dino_market1501_softmax'
+  save_dir: 'log/sam_market1501_softmax'
 
 loss:
   name: 'softmax'

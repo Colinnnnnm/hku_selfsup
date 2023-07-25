@@ -1,11 +1,19 @@
 from __future__ import print_function, absolute_import
+
+import math
+
 import torch
 
-AVAI_SCH = ['single_step', 'multi_step', 'cosine']
+AVAI_SCH = ['single_step', 'multi_step', 'cosine', 'warm_up_cosine']
 
 
 def build_lr_scheduler(
-    optimizer, lr_scheduler='single_step', stepsize=1, gamma=0.1, max_epoch=1
+        optimizer,
+        lr_scheduler='single_step',
+        stepsize=1,
+        gamma=0.1,
+        max_epoch=1,
+        warm_up_epochs=5
 ):
     """A function wrapper for building a learning rate scheduler.
 
@@ -64,5 +72,12 @@ def build_lr_scheduler(
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, float(max_epoch)
         )
+
+    elif lr_scheduler == 'warm_up_cosine':
+        def warm_up_with_cosine_lr(epoch):
+            epoch = epoch + 1
+            return epoch / warm_up_epochs if epoch <= warm_up_epochs else 0.5 * (
+                math.cos((epoch - warm_up_epochs) / (max_epoch - warm_up_epochs) * math.pi) + 1)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warm_up_with_cosine_lr)
 
     return scheduler
