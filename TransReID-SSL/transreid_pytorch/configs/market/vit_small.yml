@@ -9,7 +9,7 @@ MODEL:
   DEVICE_ID: ('0')
   TRANSFORMER_TYPE: 'vit_small_patch16_224_TransReID'
   STRIDE_SIZE: [16, 16]
-  FREEZE_BASE: True
+  FREEZE_BASE: False
   # STEM_CONV: True # False for vanilla ViT-S
   # DIST_TRAIN: True
 

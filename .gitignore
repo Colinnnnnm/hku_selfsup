@@ -7,11 +7,6 @@ dataset/cat_dog/data.zip
 *.zip
 data/
 
-pretrained_model/
-pre_trained_model/
-
-model/
-
 .nfs*
 
 # compilation and distribution
@@ -62,8 +57,6 @@ dist/
 
 **/.ipynb_checkpoints
 **/.ipynb_checkpoints/**
-
-**/notebooks
 
 *.swp
 
