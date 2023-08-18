@@ -106,7 +106,7 @@ class ImageEncoderViT(nn.Module):
         self.num_classes = num_classes
         self.img_size = img_size
 
-        self.local_feature = local_feature
+        self.local_feature = local_feature# replace class token by average on other tokens
 
         self.patch_embed = PatchEmbed(
             img_size=img_size,
@@ -271,7 +271,7 @@ class ImageEncoderViT(nn.Module):
         # pass
         for p in [self.pos_embed]:
             p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:6], self.neck]:
+        for m in [self.patch_embed, self.blocks[:3]]:
             for p in m.parameters(recurse=True):
                 p.requires_grad = False
 
@@ -687,6 +687,7 @@ def vit_base_patch16_1024_sam(
     model = ImageEncoderViT(
         img_size=img_size,
         patch_size=16,
+        stride_size=stride_size,
         embed_dim=768,
         depth=12,
         num_heads=12,
@@ -718,12 +719,16 @@ def vit_large_patch16_1024_sam(
     model = ImageEncoderViT(
         img_size=img_size,
         patch_size=16,
+        stride_size=stride_size,
         embed_dim=768,
         depth=12,
         num_heads=12,
         mlp_ratio=4,
         qkv_bias=True,
         use_rel_pos=True,
+        global_attn_indexes=[2, 5, 8, 11],
+        window_size=14,
+        out_chans=256,
         camera=camera,
         view=view,
         sie_xishu=sie_xishu,

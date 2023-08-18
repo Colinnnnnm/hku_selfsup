@@ -444,11 +444,11 @@ def vit_base_patch14_224_dinov2(
         num_heads=12,
         mlp_ratio=4,
         qkv_bias=True,
-        camera=camera,
-        view=view,
         drop_path_rate=drop_path_rate,
         init_values=1.0,
         block_chunks=0,
+        camera=camera,
+        view=view,
         sie_xishu=sie_xishu,
         local_feature=local_feature,
         block_fn=partial(Block, attn_class=MemEffAttention),
@@ -457,13 +457,31 @@ def vit_base_patch14_224_dinov2(
     return model
 
 
-def vit_large(patch_size=16, **kwargs):
+def vit_large_patch14_224_dinov2(
+        img_size=(224, 224),
+        stride_size=14,
+        drop_path_rate=0.1,
+        camera=0,
+        view=0,
+        local_feature=False,
+        sie_xishu=1.5,
+        **kwargs):
     model = DinoVisionTransformer(
-        patch_size=patch_size,
+        img_size=img_size,
+        patch_size=14,
+        stride_size=stride_size,
         embed_dim=1024,
         depth=24,
         num_heads=16,
         mlp_ratio=4,
+        qkv_bias=True,
+        drop_path_rate=drop_path_rate,
+        init_values=1.0,
+        block_chunks=0,
+        camera=camera,
+        view=view,
+        sie_xishu=sie_xishu,
+        local_feature=local_feature,
         block_fn=partial(Block, attn_class=MemEffAttention),
         **kwargs,
     )
