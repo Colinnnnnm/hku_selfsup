@@ -405,21 +405,22 @@ def vit_small_patch14_224_dinov2(
         **kwargs):
     model = DinoVisionTransformer(
         img_size=img_size,
-        patch_size=14,
+        patch_size=14,#g
         stride_size=stride_size,
-        embed_dim=384,
-        depth=12,
-        num_heads=6,
-        mlp_ratio=4,
+        embed_dim=384,#l
+        depth=12,#l
+        num_heads=6,#l
+        mlp_ratio=4,#l
         qkv_bias=True,
         drop_path_rate=drop_path_rate,
-        init_values=1.0,
-        block_chunks=0,
+        init_values=1.0,#g
+        ffn_layer = "mlp",#g
+        block_chunks=0,#g
         camera=camera,
         view=view,
         sie_xishu=sie_xishu,
         local_feature=local_feature,
-        block_fn=partial(Block, attn_class=MemEffAttention),
+        block_fn=partial(Block, attn_class=MemEffAttention),#l
         **kwargs,
     )
     model.in_planes = 384

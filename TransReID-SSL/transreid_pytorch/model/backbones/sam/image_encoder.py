@@ -720,13 +720,13 @@ def vit_large_patch16_1024_sam(
         img_size=img_size,
         patch_size=16,
         stride_size=stride_size,
-        embed_dim=768,
-        depth=12,
-        num_heads=12,
+        embed_dim=1024,
+        depth=24,
+        num_heads=16,
         mlp_ratio=4,
         qkv_bias=True,
         use_rel_pos=True,
-        global_attn_indexes=[2, 5, 8, 11],
+        global_attn_indexes=[5, 11, 17, 23],
         window_size=14,
         out_chans=256,
         camera=camera,
@@ -735,4 +735,5 @@ def vit_large_patch16_1024_sam(
         local_feature=local_feature,
         **kwargs,
     )
+    model.in_planes = 256
     return model
