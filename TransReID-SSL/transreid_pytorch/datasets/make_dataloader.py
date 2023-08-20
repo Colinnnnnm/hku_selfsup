@@ -5,13 +5,14 @@ from torch.utils.data import DataLoader
 from .bases import ImageDataset
 from timm.data.random_erasing import RandomErasing
 from .sampler import RandomIdentitySampler, RandomIdentitySampler_IdUniform
-from .market1501 import Market1501
+from .market1501 import Market1501, Market1501_grey
 from .msmt17 import MSMT17
 from .sampler_ddp import RandomIdentitySampler_DDP
 import torch.distributed as dist
 from .mm import MM
 __factory = {
     'market1501': Market1501,
+    'market1501_grey': Market1501_grey,
     'msmt17': MSMT17,
     'mm': MM,
 }
