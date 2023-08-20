@@ -110,8 +110,8 @@ class ImageEncoderViT(nn.Module):
 
         self.patch_embed = PatchEmbed(
             img_size=img_size,
-            kernel_size=(patch_size, patch_size),
-            stride=(stride_size, stride_size),
+            kernel_size=patch_size,
+            stride=stride_size,
             in_chans=in_chans,
             embed_dim=embed_dim,
             stem_conv = stem_conv
