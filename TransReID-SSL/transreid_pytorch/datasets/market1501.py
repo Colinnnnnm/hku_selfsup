@@ -97,7 +97,7 @@ class Market1501_grey(BaseImageDataset):
     dataset_dir = 'market1501_grey'
 
     def __init__(self, root='', verbose=True, pid_begin = 0, **kwargs):
-        super(Market1501, self).__init__()
+        super(Market1501_grey, self).__init__()
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = osp.join(self.dataset_dir, 'bounding_box_train')
         self.query_dir = osp.join(self.dataset_dir, 'query')
