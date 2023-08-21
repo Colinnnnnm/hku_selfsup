@@ -10,11 +10,18 @@ from .msmt17 import MSMT17
 from .sampler_ddp import RandomIdentitySampler_DDP
 import torch.distributed as dist
 from .mm import MM
+from .dukemtmcreid import DukeMTMCreID, DukeMTMCreID_grey
+from .cuhk03 import CUHK03, CUHK03_grey
+
 __factory = {
     'market1501': Market1501,
     'market1501_grey': Market1501_grey,
     'msmt17': MSMT17,
     'mm': MM,
+    'duke': DukeMTMCreID,
+    'duke_grey': DukeMTMCreID_grey,
+    'cuhk03': CUHK03,
+    'cuhk03_grey': CUHK03_grey
 }
 
 def train_collate_fn(batch):
