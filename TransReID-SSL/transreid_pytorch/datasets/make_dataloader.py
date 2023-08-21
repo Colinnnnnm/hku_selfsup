@@ -44,19 +44,32 @@ def val_collate_fn(batch):
     return torch.stack(imgs, dim=0), pids, camids, camids_batch, viewids, img_paths
 
 
-class SquarePad:
+class AspectPad:
+
+    def __init__(self, to):
+        to_h, to_w = to
+        self.to_ratio = to_h / to_w
+
     def __call__(self, image):
         w, h = image.size
-        max_wh = np.max([w, h])
-        hp = int((max_wh - w) / 2)
-        vp = int((max_wh - h) / 2)
-        padding = [hp, vp, hp, vp]
-        return F.pad(image, padding, 0, 'constant')
+        ratio = h / w
+        if ratio == self.to_ratio:
+            return image
+        elif ratio > self.to_ratio:
+            to_w = h / self.to_ratio
+            left_pad = int((to_w - w) / 2)
+            right_pad = int(to_w - left_pad - w)
+            return F.pad(image, [left_pad, 0, right_pad, 0], 0, 'constant')
+        else:
+            to_h = w * self.to_ratio
+            top_pad = int((to_h - h) / 2)
+            bottom_pad = int(to_h - top_pad - h)
+            return F.pad(image, [0, top_pad, 0, bottom_pad], 0, 'constant')
 
 
 def make_dataloader(cfg):
     train_transforms = T.Compose([
-            SquarePad(),
+            AspectPad(cfg.INPUT.SIZE_TRAIN),
             T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
             T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
             T.Pad(cfg.INPUT.PADDING),
@@ -67,7 +80,7 @@ def make_dataloader(cfg):
         ])
 
     val_transforms = T.Compose([
-        SquarePad(),
+        AspectPad(cfg.INPUT.SIZE_TRAIN),
         T.Resize(cfg.INPUT.SIZE_TEST),
         T.ToTensor(),
         T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)
