@@ -271,7 +271,7 @@ class ImageEncoderViT(nn.Module):
         # pass
         for p in [self.pos_embed]:
             p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:-2]]:
+        for m in [self.patch_embed, self.blocks[:3]]:
             for p in m.parameters(recurse=True):
                 p.requires_grad = False
 

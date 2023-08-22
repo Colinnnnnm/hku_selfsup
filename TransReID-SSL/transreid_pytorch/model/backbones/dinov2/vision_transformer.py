@@ -364,7 +364,7 @@ class DinoVisionTransformer(nn.Module):
         # pass
         for p in [self.cls_token, self.pos_embed, self.mask_token]:
            p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:-2]]:
+        for m in [self.patch_embed, self.blocks[:3]]:
            for p in m.parameters(recurse=True):
                p.requires_grad = False
 
