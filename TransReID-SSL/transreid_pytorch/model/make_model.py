@@ -6,6 +6,7 @@ from .backbones.vit_pytorch import vit_base_patch16_224_TransReID, vit_small_pat
 from .backbones.swin_transformer import swin_base_patch4_window7_224, swin_small_patch4_window7_224
 from .backbones.dinov2.vision_transformer import vit_small_patch14_224_dinov2, vit_base_patch14_224_dinov2
 from .backbones.sam.image_encoder import vit_base_patch16_1024_sam, vit_large_patch16_1024_sam
+from .backbones.dino.vision_transformer import vit_base_patch8_224_dino, vit_small_patch8_224_dino, vit_base_patch16_224_dino, vit_small_patch16_224_dino
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
 from .backbones.resnet_ibn_a import resnet50_ibn_a,resnet101_ibn_a
 
@@ -445,6 +446,10 @@ __factory_T_type = {
     'deit_base_patch16_224_TransReID': vit_base_patch16_224_TransReID,
     'vit_small_patch16_224_TransReID': vit_small_patch16_224_TransReID,
     'deit_small_patch16_224_TransReID': vit_small_patch16_224_TransReID,
+    'vit_base_patch16_224_dino': vit_base_patch16_224_dino,
+    'vit_small_patch16_224_dino': vit_small_patch16_224_dino,
+    'vit_base_patch8_224_dino': vit_base_patch8_224_dino,
+    'vit_small_patch8_224_dino': vit_small_patch8_224_dino,
     'swin_base_patch4_window7_224': swin_base_patch4_window7_224,
     'swin_small_patch4_window7_224': swin_small_patch4_window7_224,
     'vit_small_patch16_224_dinov2': vit_small_patch14_224_dinov2,
