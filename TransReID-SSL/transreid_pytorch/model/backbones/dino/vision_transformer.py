@@ -205,7 +205,9 @@ class PatchEmbed(nn.Module):
         img_size = to_2tuple(img_size)
         patch_size = to_2tuple(patch_size)
         stride_size_tuple = to_2tuple(stride_size)
-        num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
+        self.num_x = img_size[0] // patch_size[0]
+        self.num_y = img_size[1] // patch_size[1]
+        num_patches = self.num_x * self.num_y
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = num_patches
@@ -404,7 +406,10 @@ class VisionTransformer(nn.Module):
                 if 'distilled' in model_path:
                     print('distill need to choose right cls token in the pth')
                     v = torch.cat([v[:, 0:1], v[:, 2:]], dim=1)
-                v = resize_pos_embed(v, self.pos_embed, self.patch_embed.num_y, self.patch_embed.num_x,hw_ratio)
+                v = resize_pos_embed(v,
+                                     self.pos_embed,
+                                     self.patch_embed.num_y,
+                                     self.patch_embed.num_x,hw_ratio)
             try:
                 self.state_dict()[k].copy_(v)
                 count +=1
