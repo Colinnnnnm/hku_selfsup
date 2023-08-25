@@ -66,12 +66,16 @@ class AspectPad:
             bottom_pad = int(to_h - top_pad - h)
             return F.pad(image, [0, top_pad, 0, bottom_pad], 0, 'constant')
 
-
 def make_dataloader(cfg):
     train_transforms = T.Compose([
             AspectPad(cfg.INPUT.SIZE_TRAIN),
             T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
             T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
+            T.RandomApply(
+                [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
+                p=0.8
+            ),
+            # T.RandomGrayscale(p=0.2),
             T.Pad(cfg.INPUT.PADDING),
             T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
             T.ToTensor(),
