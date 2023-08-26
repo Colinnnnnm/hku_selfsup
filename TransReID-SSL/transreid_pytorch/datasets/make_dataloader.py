@@ -72,10 +72,10 @@ def make_dataloader(cfg):
             T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
             T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
             T.RandomApply(
-                [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
+                [T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
                 p=0.8
             ),
-            # T.RandomGrayscale(p=0.2),
+            T.RandomGrayscale(p=0.2),
             T.Pad(cfg.INPUT.PADDING),
             T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
             T.ToTensor(),
