@@ -1,0 +1,1 @@
+python ContrasiveTrain.py -p "../dataset/market1501/Market1501/bounding_box_train/*.jpg" --lr 0.0001 --weight_decay 5e-4 --batch_size 4
