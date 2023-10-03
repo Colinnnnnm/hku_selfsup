@@ -1,0 +1,44 @@
+**__pycache__**
+**build
+**settings.json
+lightning_logs/
+**lightning_logs/
+**/__MACOSX
+datasets/
+dist/
+docs/source/tutorials/package/*
+docs/source/tutorials/platform/*
+docs/source/tutorials_source/platform/data
+docs/source/tutorials_source/platform/pizzas
+docs/source/docker/resources
+docs/source/getting_started/resources
+!docs/source/tutorials/package.rst
+!docs/source/tutorials/platform.rst
+!docs/source/tutorials/package/structure_your_input.rst
+**.zip
+*.egg-info
+
+
+
+#ignore venv
+venv
+
+#ignore pycharm IDE
+.idea
+
+#ignore lightly outputs
+lightly_outputs
+
+#ignore .DS_Store
+**.DS_Store
+
+#ignore eggs
+.eggs
+tests/UNMOCKED_end2end_tests/call_test_api.py
+tests/UNMOCKED_end2end_tests/get_versions_all_apis.py
+tests/UNMOCKED_end2end_tests/call_benchmark_upload_private.py
+tests/UNMOCKED_end2end_tests/test_magic_on_branch.sh
+
+# ignore VSCode
+.vscode
+*.code-workspace
