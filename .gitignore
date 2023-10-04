@@ -4,8 +4,14 @@ dataset/cat_dog/train_set
 dataset/cat_dog/test_set
 dataset/cat_dog/data
 dataset/cat_dog/data.zip
+
 *.zip
-data/
+*.jpg
+*.png
+*.mat
+Thumbs.db
+
+logs/
 
 .nfs*
 
