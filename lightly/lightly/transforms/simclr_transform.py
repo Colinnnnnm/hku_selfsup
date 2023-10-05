@@ -6,7 +6,6 @@ from PIL.Image import Image
 from torch import Tensor
 
 from lightly.transforms.gaussian_blur import GaussianBlur
-from lightly.transforms.multi_view_transform import MultiViewTransform
 from lightly.transforms.rotation import random_rotation_transform
 from lightly.transforms.utils import IMAGENET_NORMALIZE
 
@@ -148,22 +147,12 @@ class SimCLRTransform:
             rr_degrees=rr_degrees,
             normalize=normalize,
         )
-        self.transform = view_transform
-
-    def __call__(self, image: Union[Tensor, Image]) :
-        """Transforms an image into multiple views.
-
-        Every transform in self.transforms creates a new view.
-
-        Args:
-            image:
-                Image to be transformed into multiple views.
-
-        Returns:
-            List of views.
-
-        """
-        return self.transform(image)
+        eval_transform = SimCLREvaluateTransform(
+            input_size=input_size,
+            normalize=normalize,
+        )
+        self.train_transform = view_transform
+        self.eval_transform = eval_transform
 
 
 class SimCLRViewTransform:
@@ -203,6 +192,35 @@ class SimCLRViewTransform:
             T.RandomApply([color_jitter], p=cj_prob),
             T.RandomGrayscale(p=random_gray_scale),
             GaussianBlur(kernel_size=kernel_size, sigmas=sigmas, prob=gaussian_blur),
+            T.ToTensor(),
+        ]
+        if normalize:
+            transform += [T.Normalize(mean=normalize["mean"], std=normalize["std"])]
+        self.transform = T.Compose(transform)
+
+    def __call__(self, image: Union[Tensor, Image]) -> Tensor:
+        """
+        Applies the transforms to the input image.
+
+        Args:
+            image:
+                The input image to apply the transforms to.
+
+        Returns:
+            The transformed image.
+
+        """
+        transformed: Tensor = self.transform(image)
+        return transformed
+
+class SimCLREvaluateTransform:
+    def __init__(
+        self,
+        input_size: int = 224,
+        normalize: Union[None, Dict[str, List[float]]] = IMAGENET_NORMALIZE,
+    ):
+        transform = [
+            AspectPad((input_size, input_size)),
             T.ToTensor(),
         ]
         if normalize:
