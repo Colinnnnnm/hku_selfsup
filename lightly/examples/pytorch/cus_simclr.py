@@ -19,12 +19,14 @@ model = SimCLR(backbone)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-transform = SimCLRTransform(input_size=32, gaussian_blur=0.0)
+transform = SimCLRTransform(input_size=224, gaussian_blur=0.0)
 # dataset = torchvision.datasets.CIFAR10(
 #     "datasets/cifar10", download=True, transform=transform
 # )
 # or create a dataset from a folder containing images or videos:
-dataset = LightlyDataset("path/to/folder", transform=transform)
+dataset = LightlyDataset("dataset/Market-1501-v15.09.15/bounding_box_train",
+                         "dataset/market1501_to_duke/Market-1501-v15.09.15/bounding_box_train",
+                         transform=transform)
 
 dataloader = torch.utils.data.DataLoader(
     dataset,

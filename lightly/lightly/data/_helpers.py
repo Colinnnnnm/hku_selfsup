@@ -96,6 +96,7 @@ def _contains_subdirs(root: str):
 
 def _load_dataset_from_folder(
     root: str,
+            mapping_dir,
     transform,
     is_valid_file: Optional[Callable[[str], bool]] = None,
     tqdm_args: Dict[str, Any] = None,
@@ -148,6 +149,7 @@ def _load_dataset_from_folder(
         # root contains plain images -> create a folder dataset
         dataset = DatasetFolder(
             root,
+            mapping_dir,
             extensions=IMG_EXTENSIONS,
             transform=transform,
             is_valid_file=is_valid_file,

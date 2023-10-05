@@ -88,6 +88,7 @@ class DatasetFolder(datasets.VisionDataset):
     def __init__(
         self,
         root: str,
+            mapping_dir:str,
         loader=default_loader,
         extensions=None,
         transform=None,
@@ -111,6 +112,8 @@ class DatasetFolder(datasets.VisionDataset):
         self.samples = samples
         self.targets = [s[1] for s in samples]
 
+        self.mapping_dir = mapping_dir
+
     def __getitem__(self, index: int):
         """Returns item at index.
 
@@ -125,12 +128,16 @@ class DatasetFolder(datasets.VisionDataset):
 
         path, target = self.samples[index]
         sample = self.loader(path)
+        filename = os.path.basename(path)
+        translated_path = os.path.join(self.mapping_dir, filename)
+        translated_sample = self.loader(translated_path)
         if self.transform is not None:
             sample = self.transform(sample)
+            translated_sample = self.transform(translated_sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return sample, target
+        return [sample, translated_sample], target
 
     def __len__(self):
         """Returns the number of samples in the dataset."""

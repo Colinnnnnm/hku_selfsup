@@ -139,6 +139,7 @@ class LightlyDataset:
     def __init__(
         self,
         input_dir: Union[str, None],
+            mapping_dir: str,
         transform: transforms.Compose = None,
         index_to_filename: Callable[[datasets.VisionDataset, int], str] = None,
         filenames: List[str] = None,
@@ -160,6 +161,7 @@ class LightlyDataset:
         if self.input_dir is not None:
             self.dataset = _load_dataset_from_folder(
                 self.input_dir,
+                mapping_dir,
                 transform,
                 is_valid_file=is_valid_file,
                 tqdm_args=tqdm_args,
