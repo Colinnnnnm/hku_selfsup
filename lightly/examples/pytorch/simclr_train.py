@@ -45,6 +45,8 @@ if __name__ == '__main__':
     parser.add_argument("--log-period", default=10, type=int)
     parser.add_argument("--checkpoint-period", default=60, type=int)
     parser.add_argument("--eval-period", default=5, type=int)
+    parser.add_argument("--start-freeze", default=3, type=int)
+    parser.add_argument("--end-freeze", default=None, type=int)
     parser.add_argument("--train-root",
                         default="datasets/Market-1501-v15.09.15/bounding_box_train",
                         type=str)
@@ -82,8 +84,13 @@ if __name__ == '__main__':
     input_size = (args.image_height, args.image_width)
 
     backbone = vit_small_patch14_224_dinov2(img_size=input_size, pretrained_path=args.pretrained_path)
-    for p in backbone.parameters(recurse=True):
-        p.requires_grad = False
+
+    start_freeze = args.start_freeze
+    end_freeze = args.end_freeze or len(backbone.blocks)
+    for b in backbone.blocks[start_freeze:end_freeze]:
+        for p in b.parameters(recurse=True):
+            p.requires_grad = False
+
     model = SimCLR(backbone)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
