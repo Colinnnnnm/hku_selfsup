@@ -79,6 +79,8 @@ if __name__ == '__main__':
     logger.info("Saving model in the path :{}".format(output_dir))
     #  logger.info(args)
 
+    logger.info("args: {}".format(args))
+
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device_id
 
     input_size = (args.image_height, args.image_width)
