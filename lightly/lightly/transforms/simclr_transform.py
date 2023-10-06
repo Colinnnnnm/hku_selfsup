@@ -230,6 +230,7 @@ class SimCLREvaluateTransform:
     ):
         transform = [
             AspectPad(input_size),
+            T.Resize(size=input_size),
             T.ToTensor(),
         ]
         if normalize:
