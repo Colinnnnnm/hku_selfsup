@@ -79,6 +79,8 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device_id
 
     backbone = vit_small_patch14_224_dinov2(pretrained_path=args.pretrained_path)
+    for p in backbone.parameters(recurse=True):
+        p.requires_grad = False
     model = SimCLR(backbone)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

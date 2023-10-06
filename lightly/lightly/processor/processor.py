@@ -37,8 +37,7 @@ def do_train(args,
             x0, x1 = batch[0]
             x0 = x0.to(device)
             x1 = x1.to(device)
-            z0 = model(x0)
-            z1 = model(x1)
+            z0, z1 = model(x0, x1)
             loss = criterion(z0, z1)
             total_loss += loss.detach()
             avg_loss = total_loss / len(train_dataloader)
@@ -72,8 +71,7 @@ def do_train(args,
                     x0, x1 = batch[0]
                     x0 = x0.to(device)
                     x1 = x1.to(device)
-                    z0 = model(x0)
-                    z1 = model(x1)
+                    z0, z1 = model(x0, x1)
                     loss = criterion(z0, z1)
                     total_loss += loss.detach()
             avg_loss = total_loss / len(eval_dataloader)
@@ -102,8 +100,7 @@ def do_inference(args,
             x0, x1 = batch[0]
             x0 = x0.to(device)
             x1 = x1.to(device)
-            z0 = model(x0)
-            z1 = model(x1)
+            z0, z1 = model(x0, x1)
             loss = criterion(z0, z1)
             total_loss += loss.detach()
     avg_loss = total_loss / len(eval_dataloader)

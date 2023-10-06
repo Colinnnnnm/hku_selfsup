@@ -28,12 +28,12 @@ class SimCLR(nn.Module):
 
     """
 
-    def __init__(self, backbone: nn.Module, num_ftrs: int = 32, out_dim: int = 128):
+    def __init__(self, backbone: nn.Module, out_dim: int = 128):
         super(SimCLR, self).__init__()
 
         self.backbone = backbone
         self.projection_head = SimCLRProjectionHead(
-            num_ftrs, num_ftrs, out_dim, batch_norm=False
+            backbone.num_features, backbone.num_features, out_dim, batch_norm=False
         )
 
         warnings.warn(

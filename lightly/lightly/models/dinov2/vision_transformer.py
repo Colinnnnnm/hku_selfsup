@@ -276,9 +276,7 @@ class DinoVisionTransformer(nn.Module):
 
     def forward(self, x, masks=None):
         x = self.forward_features(x)
-        bn_x = feat = self.bottleneck(x)
-        bn_x = F.normalize(bn_x)
-        return bn_x
+        return x
 
     def load_param(self, model_path,hw_ratio):
         param_dict = torch.load(model_path, map_location='cpu')
