@@ -30,20 +30,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="SimCLR Training")
 
     parser.add_argument("--model-name", default="transformer", type=str)
-    parser.add_argument("--image-size", default=224, type=int)
+    parser.add_argument("--image-height", default=224, type=int)
+    parser.add_argument("--image-width", default=224, type=int)
     parser.add_argument("--local_rank", default=0, type=int)
     parser.add_argument("--train-batch-size", default=256, type=int)
     parser.add_argument("--eval-batch-size", default=2048, type=int)
     parser.add_argument("--solver-seed", default=1234, type=int)
     parser.add_argument("--output-dir", default="logs/", type=str)
     parser.add_argument("--device-id", default="0", type=str)
-    parser.add_argument("--max-epochs", default=100, type=int)
+    parser.add_argument("--max-epochs", default=120, type=int)
     parser.add_argument("--base-lr", default=0.06, type=float)
     parser.add_argument("--warmup-epochs", default=20, type=int)
     parser.add_argument("--weight-decay", default=1e-4, type=float)
-    parser.add_argument("--log-period", default=20, type=int)
-    parser.add_argument("--checkpoint-period", default=20, type=int)
-    parser.add_argument("--eval-period", default=20, type=int)
+    parser.add_argument("--log-period", default=10, type=int)
+    parser.add_argument("--checkpoint-period", default=60, type=int)
+    parser.add_argument("--eval-period", default=5, type=int)
     parser.add_argument("--train-root",
                         default="datasets/Market-1501-v15.09.15/bounding_box_train",
                         type=str)
@@ -78,7 +79,9 @@ if __name__ == '__main__':
 
     os.environ['CUDA_VISIBLE_DEVICES'] = args.device_id
 
-    backbone = vit_small_patch14_224_dinov2(pretrained_path=args.pretrained_path)
+    input_size = (args.image_height, args.image_width)
+
+    backbone = vit_small_patch14_224_dinov2(img_size=input_size, pretrained_path=args.pretrained_path)
     for p in backbone.parameters(recurse=True):
         p.requires_grad = False
     model = SimCLR(backbone)
@@ -86,7 +89,7 @@ if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
 
-    transform = SimCLRTransform(input_size=args.image_size, gaussian_blur=0.0)
+    transform = SimCLRTransform(input_size=input_size, gaussian_blur=0.0)
     # dataset = torchvision.datasets.CIFAR10(
     #     "datasets/cifar10", download=True, transform=transform
     # )

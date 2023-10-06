@@ -110,7 +110,7 @@ class SimCLRTransform:
 
     def __init__(
         self,
-        input_size: int = 224,
+        input_size: Tuple[int, int] = [224, 224],
         cj_prob: float = 0.8,
         cj_strength: float = 1.0,
         cj_bright: float = 0.8,
@@ -158,7 +158,7 @@ class SimCLRTransform:
 class SimCLRViewTransform:
     def __init__(
         self,
-        input_size: int = 224,
+        input_size: Tuple[int, int] = [224, 224],
         cj_prob: float = 0.8,
         cj_strength: float = 1.0,
         cj_bright: float = 0.8,
@@ -176,21 +176,30 @@ class SimCLRViewTransform:
         rr_degrees: Union[None, float, Tuple[float, float]] = None,
         normalize: Union[None, Dict[str, List[float]]] = IMAGENET_NORMALIZE,
     ):
-        color_jitter = T.ColorJitter(
-            brightness=cj_strength * cj_bright,
-            contrast=cj_strength * cj_contrast,
-            saturation=cj_strength * cj_sat,
-            hue=cj_strength * cj_hue,
-        )
+        # color_jitter = T.ColorJitter(
+        #     brightness=cj_strength * cj_bright,
+        #     contrast=cj_strength * cj_contrast,
+        #     saturation=cj_strength * cj_sat,
+        #     hue=cj_strength * cj_hue,
+        # )
 
+        # transform = [
+        #     AspectPad((input_size, input_size)),
+        #     T.RandomResizedCrop(size=input_size, scale=(min_scale, 1.0)),
+        #     random_rotation_transform(rr_prob=rr_prob, rr_degrees=rr_degrees),
+        #     T.RandomHorizontalFlip(p=hf_prob),
+        #     T.RandomVerticalFlip(p=vf_prob),
+        #     T.RandomApply([color_jitter], p=cj_prob),
+        #     T.RandomGrayscale(p=random_gray_scale),
+        #     GaussianBlur(kernel_size=kernel_size, sigmas=sigmas, prob=gaussian_blur),
+        #     T.ToTensor(),
+        # ]
         transform = [
-            AspectPad((input_size, input_size)),
+            AspectPad(input_size),
             T.RandomResizedCrop(size=input_size, scale=(min_scale, 1.0)),
             random_rotation_transform(rr_prob=rr_prob, rr_degrees=rr_degrees),
             T.RandomHorizontalFlip(p=hf_prob),
             T.RandomVerticalFlip(p=vf_prob),
-            T.RandomApply([color_jitter], p=cj_prob),
-            T.RandomGrayscale(p=random_gray_scale),
             GaussianBlur(kernel_size=kernel_size, sigmas=sigmas, prob=gaussian_blur),
             T.ToTensor(),
         ]
@@ -216,11 +225,11 @@ class SimCLRViewTransform:
 class SimCLREvaluateTransform:
     def __init__(
         self,
-        input_size: int = 224,
+        input_size: Tuple[int, int] = [224, 224],
         normalize: Union[None, Dict[str, List[float]]] = IMAGENET_NORMALIZE,
     ):
         transform = [
-            AspectPad((input_size, input_size)),
+            AspectPad(input_size),
             T.ToTensor(),
         ]
         if normalize:
