@@ -40,7 +40,7 @@ def do_train(args,
             z0, z1 = model(x0, x1)
             loss = criterion(z0, z1)
             total_loss += loss.detach()
-            avg_loss = total_loss / len(train_dataloader)
+            avg_loss = total_loss / (n_iter + 1)
 
             scaler.scale(loss).backward()
 
@@ -54,10 +54,10 @@ def do_train(args,
                             .format(epoch, (n_iter + 1), len(train_dataloader), avg_loss, base_lr))
 
         end_time = time.time()
-        time_per_batch = (end_time - start_time) / (n_iter + 1)
+        time_per_batch = (end_time - start_time) / len(train_dataloader)
         scheduler.step(epoch)
         logger.info("Epoch {} done. Time per epoch: {:.3f}[s] Speed: {:.1f}[samples/s]"
-                .format(epoch, time_per_batch * (n_iter + 1), train_dataloader.batch_size / time_per_batch))
+                .format(epoch, time_per_batch * len(train_dataloader), train_dataloader.batch_size / time_per_batch))
 
         if epoch % checkpoint_period == 0:
             torch.save(model.state_dict(),
@@ -76,8 +76,8 @@ def do_train(args,
                     total_loss += loss.detach()
             avg_loss = total_loss / len(eval_dataloader)
             logger.info("Validation Results - Epoch: {}".format(epoch))
-            logger.info("Total Loss: {:.1%}".format(total_loss))
-            logger.info("Average Loss: {:.1%}".format(avg_loss))
+            logger.info("Total Loss: {:.3f}".format(total_loss))
+            logger.info("Average Loss: {:.3f}".format(avg_loss))
             torch.cuda.empty_cache()
 
 

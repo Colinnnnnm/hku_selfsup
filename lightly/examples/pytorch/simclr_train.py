@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from lightly.data import LightlyDataset
 from lightly.loss import NTXentLoss
 from lightly.transforms.simclr_transform import SimCLRTransform
-from lightly.models.dinov2.vision_transformer import vit_small_patch14_224_dinov2
+from lightly.models.dinov2.vision_transformer import vit_small_patch14_224_dinov2, vit_base_patch14_224_dinov2
 
 from lightly.models.simclr import SimCLR
 
@@ -47,6 +47,7 @@ if __name__ == '__main__':
     parser.add_argument("--eval-period", default=5, type=int)
     parser.add_argument("--start-freeze", default=3, type=int)
     parser.add_argument("--end-freeze", default=None, type=int)
+    parser.add_argument("--model-fn", default="vit_small_patch14_224_dinov2", type=str)
     parser.add_argument("--train-root",
                         default="datasets/Market-1501-v15.09.15/bounding_box_train",
                         type=str)
@@ -61,6 +62,9 @@ if __name__ == '__main__':
                         type=str)
     parser.add_argument("--pretrained-path",
                         default="pretrained/dinov2_vits14_pretrain.pth",
+                        type=str)
+    parser.add_argument("--resume-path",
+                        default=None,
                         type=str)
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
@@ -85,7 +89,12 @@ if __name__ == '__main__':
 
     input_size = (args.image_height, args.image_width)
 
-    backbone = vit_small_patch14_224_dinov2(img_size=input_size, pretrained_path=args.pretrained_path)
+    model_dict = {
+        "vit_small_patch14_224_dinov2": vit_small_patch14_224_dinov2,
+        "vit_base_patch14_224_dinov2": vit_base_patch14_224_dinov2
+    }
+
+    backbone = model_dict[args.model_fn](img_size=input_size, pretrained_path=args.pretrained_path)
 
     start_freeze = args.start_freeze
     end_freeze = args.end_freeze or len(backbone.blocks)
@@ -94,6 +103,15 @@ if __name__ == '__main__':
             p.requires_grad = False
 
     model = SimCLR(backbone)
+
+    if args.resume_path is not None:
+        param_dict = torch.load(args.resume_path, map_location='cpu')
+        for k, v in param_dict.items():
+            try:
+                model.state_dict()[k].copy_(v)
+            except:
+                pass
+
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
