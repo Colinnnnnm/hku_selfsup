@@ -1,10 +1,12 @@
 import torch.utils.data
 from data.base_data_loader import BaseDataLoader
+import logging
 
+logger = logging.getLogger("camstyle")
 
 def CreateDataLoader(opt):
     data_loader = CustomDatasetDataLoader()
-    print(data_loader.name())
+    logger.info(data_loader.name())
     data_loader.initialize(opt)
     return data_loader
 
@@ -29,7 +31,7 @@ def CreateDataset(opt):
     else:
         raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
 
-    print("dataset [%s] was created" % (dataset.name()))
+    logger.info("dataset [%s] was created" % (dataset.name()))
     dataset.initialize(opt)
     return dataset
 

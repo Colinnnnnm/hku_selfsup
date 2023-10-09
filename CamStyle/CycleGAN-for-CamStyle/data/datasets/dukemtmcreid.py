@@ -6,6 +6,9 @@ import os.path as osp
 from data.datasets.bases import BaseImageDataset
 from collections import defaultdict
 import pickle
+import logging
+
+logger = logging.getLogger("camstyle")
 
 
 class DukeMTMCreID(BaseImageDataset):
@@ -22,7 +25,7 @@ class DukeMTMCreID(BaseImageDataset):
         - images:16522 (train) + 2228 (query) + 17661 (gallery).
         - cameras: 8.
     """
-    dataset_dir = 'duke'
+    dataset_dir = 'DukeMTMC-reID'
 
     def __init__(self, root='', verbose=True, pid_begin = 0, **kwargs):
         super(DukeMTMCreID, self).__init__()
@@ -38,7 +41,7 @@ class DukeMTMCreID(BaseImageDataset):
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 
         if verbose:
-            print("=> DukeMTMCreID loaded")
+            logger.info("=> DukeMTMCreID loaded")
 
         self.train = train
         self.query = query
@@ -76,7 +79,7 @@ class DukeMTMCreID(BaseImageDataset):
         for img_path in sorted(img_paths):
             pid, camid = map(int, pattern.search(img_path).groups())
             assert 1 <= camid <= 8
-            camid -= 1 # index starts from 0
+            # camid -= 1 # index starts from 0
             if relabel:
                 pid = pid2label[pid]
             data.append((img_path, self.pid_begin + pid, camid, 1))
@@ -114,7 +117,7 @@ class DukeMTMCreID_grey(BaseImageDataset):
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 
         if verbose:
-            print("=> DukeMTMCreID loaded")
+            logger.info("=> DukeMTMCreID loaded")
 
         self.train = train
         self.query = query

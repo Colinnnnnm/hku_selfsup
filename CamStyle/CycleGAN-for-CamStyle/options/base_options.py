@@ -4,6 +4,9 @@ from util import util
 import torch
 import models
 
+import logging
+
+logger = logging.getLogger("camstyle")
 
 class BaseOptions():
     def __init__(self):
@@ -12,6 +15,7 @@ class BaseOptions():
     def initialize(self, parser):
         parser.add_argument('--dataroot', type=str, default=".", help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
+        parser.add_argument('--output_dir', type=str, default="logs/", help='input batch size')
         parser.add_argument('--loadSize', type=int, default=286, help='scale images to this size')
         parser.add_argument('--fineSize', type=int, default=256, help='then crop to this size')
         parser.add_argument('--input_nc', type=int, default=3, help='# of input image channels')
@@ -81,7 +85,7 @@ class BaseOptions():
                 comment = '\t[default: %s]' % str(default)
             message += '{:>25}: {:<30}{}\n'.format(str(k), str(v), comment)
         message += '----------------- End -------------------'
-        print(message)
+        logger.info(message)
 
         # save to the disk
         expr_dir = os.path.join(opt.checkpoints_dir, opt.name)

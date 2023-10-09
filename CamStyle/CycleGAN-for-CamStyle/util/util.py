@@ -3,6 +3,9 @@ import torch
 import numpy as np
 from PIL import Image
 import os
+import logging
+
+logger = logging.getLogger("camstyle")
 
 
 # Converts a Tensor into an image array (numpy)
@@ -28,8 +31,8 @@ def diagnose_network(net, name='network'):
             count += 1
     if count > 0:
         mean = mean / count
-    print(name)
-    print(mean)
+    logger.info(name)
+    logger.info(mean)
 
 
 def save_image(image_numpy, image_path):
@@ -40,10 +43,10 @@ def save_image(image_numpy, image_path):
 def print_numpy(x, val=True, shp=False):
     x = x.astype(np.float64)
     if shp:
-        print('shape,', x.shape)
+        logger.info('shape,', x.shape)
     if val:
         x = x.flatten()
-        print('mean = %3.3f, min = %3.3f, max = %3.3f, median = %3.3f, std=%3.3f' % (
+        logger.info('mean = %3.3f, min = %3.3f, max = %3.3f, median = %3.3f, std=%3.3f' % (
             np.mean(x), np.min(x), np.max(x), np.median(x), np.std(x)))
 
 

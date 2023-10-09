@@ -1,5 +1,8 @@
 import importlib
 from models.base_model import BaseModel
+import logging
+
+logger = logging.getLogger("camstyle")
 
 def find_model_using_name(model_name):
     # Given the option --model [modelname],
@@ -19,7 +22,7 @@ def find_model_using_name(model_name):
             model = cls
             
     if model is None:
-        print("In %s.py, there should be a subclass of BaseModel with class name that matches %s in lowercase." % (model_filename, target_model_name))
+        logger.info("In %s.py, there should be a subclass of BaseModel with class name that matches %s in lowercase." % (model_filename, target_model_name))
         exit(0)
 
     return model
@@ -33,7 +36,7 @@ def create_model(opt):
     model = find_model_using_name(opt.model)
     instance = model()
     instance.initialize(opt)
-    print("model [%s] was created" % (instance.name()))
+    logger.info("model [%s] was created" % (instance.name()))
     return instance
     
     

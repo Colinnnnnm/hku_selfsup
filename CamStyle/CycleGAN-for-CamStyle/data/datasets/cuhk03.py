@@ -10,6 +10,9 @@ import pickle
 import json
 import os
 import errno
+import logging
+
+logger = logging.getLogger("camstyle")
 
 
 def mkdir_if_missing(dirname):
@@ -84,7 +87,7 @@ class CUHK03(BaseImageDataset):
         self.pid_begin = pid_begin
 
         if verbose:
-            print("=> CUHK03 loaded")
+            logger.info("=> CUHK03 loaded")
 
         self.preprocess_split()
 
@@ -142,7 +145,7 @@ class CUHK03(BaseImageDataset):
             unique_pids = set()
             for idx in idxs:
                 img_name = filelist[idx][0]
-                camid = int(img_name.split('_')[2]) - 1 # make it 0-based
+                camid = int(img_name.split('_')[2])# - 1 # make it 0-based
                 pid = pids[idx]
                 if relabel:
                     pid = pid2label[pid]
@@ -175,7 +178,7 @@ class CUHK03(BaseImageDataset):
             )
             return train_info, query_info, gallery_info
 
-        print('Creating new split for detected images (767/700) ...')
+        logger.info('Creating new split for detected images (767/700) ...')
         train_info, query_info, gallery_info = _extract_new_split(
             loadmat(self.split_new_det_mat_path), self.imgs_detected_dir
         )
@@ -194,7 +197,7 @@ class CUHK03(BaseImageDataset):
         ]
         write_json(split, self.split_new_det_json_path)
 
-        print('Creating new split for labeled images (767/700) ...')
+        logger.info('Creating new split for labeled images (767/700) ...')
         train_info, query_info, gallery_info = _extract_new_split(
             loadmat(self.split_new_lab_mat_path), self.imgs_labeled_dir
         )
@@ -263,7 +266,7 @@ class CUHK03_grey(BaseImageDataset):
         self.pid_begin = pid_begin
 
         if verbose:
-            print("=> CUHK03 loaded")
+            logger.info("=> CUHK03 loaded")
 
         self.preprocess_split()
 
@@ -354,7 +357,7 @@ class CUHK03_grey(BaseImageDataset):
             )
             return train_info, query_info, gallery_info
 
-        print('Creating new split for detected images (767/700) ...')
+        logger.info('Creating new split for detected images (767/700) ...')
         train_info, query_info, gallery_info = _extract_new_split(
             loadmat(self.split_new_det_mat_path), self.imgs_detected_dir
         )
@@ -373,7 +376,7 @@ class CUHK03_grey(BaseImageDataset):
         ]
         write_json(split, self.split_new_det_json_path)
 
-        print('Creating new split for labeled images (767/700) ...')
+        logger.info('Creating new split for labeled images (767/700) ...')
         train_info, query_info, gallery_info = _extract_new_split(
             loadmat(self.split_new_lab_mat_path), self.imgs_labeled_dir
         )

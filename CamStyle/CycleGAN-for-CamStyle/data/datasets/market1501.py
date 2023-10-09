@@ -12,6 +12,11 @@ import os.path as osp
 from data.datasets.bases import BaseImageDataset
 from collections import defaultdict
 import pickle
+import logging
+
+logger = logging.getLogger("camstyle")
+
+
 class Market1501(BaseImageDataset):
     """
     Market1501
@@ -23,7 +28,7 @@ class Market1501(BaseImageDataset):
     # identities: 1501 (+1 for background)
     # images: 12936 (train) + 3368 (query) + 15913 (gallery)
     """
-    dataset_dir = 'market1501'
+    dataset_dir = 'Market-1501-v15.09.15'
 
     def __init__(self, root='', verbose=True, pid_begin = 0, **kwargs):
         super(Market1501, self).__init__()
@@ -39,7 +44,7 @@ class Market1501(BaseImageDataset):
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 
         if verbose:
-            print("=> Market1501 loaded")
+            logger.info("=> Market1501 loaded")
             self.print_dataset_statistics(train, query, gallery)
 
         self.train = train
@@ -77,7 +82,7 @@ class Market1501(BaseImageDataset):
             if pid == -1: continue  # junk images are just ignored
             assert 0 <= pid <= 1501  # pid == 0 means background
             assert 1 <= camid <= 6
-            camid -= 1  # index starts from 0
+            # camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
 
             dataset.append((img_path, self.pid_begin + pid, camid, 1))
@@ -110,7 +115,7 @@ class Market1501_grey(BaseImageDataset):
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 
         if verbose:
-            print("=> Market1501 loaded")
+            logger.info("=> Market1501 loaded")
             self.print_dataset_statistics(train, query, gallery)
 
         self.train = train

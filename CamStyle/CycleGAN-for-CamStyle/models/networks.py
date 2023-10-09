@@ -3,6 +3,9 @@ import torch.nn as nn
 from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
+import logging
+
+logger = logging.getLogger("camstyle")
 
 ###############################################################################
 # Helper Functions
@@ -56,7 +59,7 @@ def init_weights(net, init_type='normal', gain=0.02):
             init.normal_(m.weight.data, 1.0, gain)
             init.constant_(m.bias.data, 0.0)
 
-    print('initialize network with %s' % init_type)
+    logger.info('initialize network with %s' % init_type)
     net.apply(init_func)
 
 

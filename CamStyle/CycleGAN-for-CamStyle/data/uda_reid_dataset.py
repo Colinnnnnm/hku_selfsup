@@ -27,8 +27,8 @@ class UDAReidDataset(BaseDataset):
             self.A_paths = self.preprocess(self.from_dataset.train, cam_id=opt.camA)
             self.B_paths = self.preprocess(self.to_dataset.train, cam_id=opt.camB)
         else:
-            self.A_paths = self.preprocess(self.from_dataset, cam_id=opt.camA, extra_cam_id=opt.camB)
-            self.B_paths = self.preprocess(self.to_dataset, cam_id=opt.camA, extra_cam_id=opt.camB)
+            self.A_paths = self.preprocess(self.from_dataset.test, cam_id=opt.camA, extra_cam_id=opt.camB)
+            self.B_paths = self.preprocess(self.to_dataset.test, cam_id=opt.camA, extra_cam_id=opt.camB)
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
@@ -38,7 +38,7 @@ class UDAReidDataset(BaseDataset):
         ret = []
         for path, _, cam, _ in paths:
             if cam not in [cam_id, extra_cam_id]: continue
-            ret.append(os.path.join(path, osp.basename(path)))
+            ret.append(path)
         return ret
 
     def __getitem__(self, index):

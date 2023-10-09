@@ -2,6 +2,9 @@ import os
 import torch
 from collections import OrderedDict
 from . import networks
+import logging
+
+logger = logging.getLogger("camstyle")
 
 
 class BaseModel():
@@ -20,7 +23,7 @@ class BaseModel():
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
         self.device = torch.device('cuda:{}'.format(self.gpu_ids[0])) if self.gpu_ids else torch.device('cpu')
-        self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
+        self.save_dir = opt.output_dir
         if opt.resize_or_crop != 'scale_width':
             torch.backends.cudnn.benchmark = True
         self.loss_names = []
@@ -68,7 +71,7 @@ class BaseModel():
         for scheduler in self.schedulers:
             scheduler.step()
         lr = self.optimizers[0].param_groups[0]['lr']
-        print('learning rate = %.7f' % lr)
+        logger.info('learning rate = %.7f' % lr)
 
     # return visualization images. train.py will display these images, and save the images to a html
     def get_current_visuals(self):
@@ -120,7 +123,7 @@ class BaseModel():
                 net = getattr(self, 'net' + name)
                 if isinstance(net, torch.nn.DataParallel):
                     net = net.module
-                print('loading the model from %s' % load_path)
+                logger.info('loading the model from %s' % load_path)
                 # if you are using PyTorch newer than 0.4 (e.g., built from
                 # GitHub source), you can remove str() on self.device
                 state_dict = torch.load(load_path, map_location=str(self.device))
@@ -131,7 +134,7 @@ class BaseModel():
 
     # print network information
     def print_networks(self, verbose):
-        print('---------- Networks initialized -------------')
+        logger.info('---------- Networks initialized -------------')
         for name in self.model_names:
             if isinstance(name, str):
                 net = getattr(self, 'net' + name)
@@ -139,9 +142,9 @@ class BaseModel():
                 for param in net.parameters():
                     num_params += param.numel()
                 if verbose:
-                    print(net)
-                print('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
-        print('-----------------------------------------------')
+                    logger.info(net)
+                logger.info('[Network %s] Total number of parameters : %.3f M' % (name, num_params / 1e6))
+        logger.info('-----------------------------------------------')
 
     # set requies_grad=Fasle to avoid computation
     def set_requires_grad(self, nets, requires_grad=False):
