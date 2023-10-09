@@ -23,6 +23,9 @@ def CreateDataset(opt):
     elif opt.dataset_mode == 'reid':
         from data.reid_dataset import ReidDataset
         dataset = ReidDataset()
+    elif opt.dataset_mode == 'uda_reid':
+        from data.uda_reid_dataset import UDAReidDataset
+        dataset = UDAReidDataset()
     else:
         raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
 

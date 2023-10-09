@@ -14,36 +14,31 @@ from data.datasets.dukemtmcreid import DukeMTMCreID
 fun_dict = {
     "cuhk03": CUHK03,
     "market1501": Market1501,
-    "duke": DukeMTMCreID
+    "dukemtmc": DukeMTMCreID
 }
 
 class UDAReidDataset(BaseDataset):
     def initialize(self, opt):
         self.opt = opt
-        self.from_root = opt.dataroot
-        self.to_root = opt.to_dataroot
-        self.dir = os.path.join(opt.dataroot, 'bounding_box_train')
+        self.from_dataset = fun_dict[opt.from_name](root=opt.from_path)
+        self.to_dataset = fun_dict[opt.to_name](root=opt.to_path)
 
         if self.opt.isTrain:
-            self.A_paths = self.preprocess(self.dir, cam_id=opt.camA)
-            self.B_paths = self.preprocess(self.dir, cam_id=opt.camB)
+            self.A_paths = self.preprocess(self.from_dataset.train, cam_id=opt.camA)
+            self.B_paths = self.preprocess(self.to_dataset.train, cam_id=opt.camB)
         else:
-            self.A_paths = self.preprocess(self.dir, cam_id=opt.camA, extra_cam_id=opt.camB)
-            self.B_paths = self.preprocess(self.dir, cam_id=opt.camA, extra_cam_id=opt.camB)
+            self.A_paths = self.preprocess(self.from_dataset, cam_id=opt.camA, extra_cam_id=opt.camB)
+            self.B_paths = self.preprocess(self.to_dataset, cam_id=opt.camA, extra_cam_id=opt.camB)
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
         self.transform = get_transform(opt)
 
-    def preprocess(self, path, cam_id=1, extra_cam_id=-1):
-        pattern = re.compile(r'([-\d]+)_c(\d)')
+    def preprocess(self, paths, cam_id=1, extra_cam_id=-1):
         ret = []
-        fpaths = sorted(glob(osp.join(path, '*.jpg')))
-        for fpath in fpaths:
-            fname = osp.basename(fpath)
-            pid, cam = map(int, pattern.search(fname).groups())
+        for path, _, cam, _ in paths:
             if cam not in [cam_id, extra_cam_id]: continue
-            ret.append(os.path.join(path, fname))
+            ret.append(os.path.join(path, osp.basename(path)))
         return ret
 
     def __getitem__(self, index):
