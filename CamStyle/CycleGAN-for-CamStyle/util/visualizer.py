@@ -28,7 +28,7 @@ def save_images(visuals, image_path, camA=1, camB=2, save_root=None):
 
     for label, im_data in visuals.items():
         im = util.tensor2im(im_data)
-        if label in ('rec_A', 'rec_B', 'real_A', 'real_B'):
+        if label in ('rec_A', 'rec_B', 'real_A', 'real_B', 'fake_A'):
             continue
         import re
         pattern = re.compile(r'([-\d]+)_c(\d)')
@@ -49,6 +49,7 @@ def save_images(visuals, image_path, camA=1, camB=2, save_root=None):
         ims.append(image_name)
         txts.append(label)
         links.append(image_name)
+    print("done")
 
 
 class Visualizer():
