@@ -23,12 +23,8 @@ class UDAReidDataset(BaseDataset):
         self.from_dataset = fun_dict[opt.from_name](root=opt.from_path)
         self.to_dataset = fun_dict[opt.to_name](root=opt.to_path)
 
-        if self.opt.isTrain:
-            self.A_paths = self.preprocess(self.from_dataset.train, cam_id=opt.camA)
-            self.B_paths = self.preprocess(self.to_dataset.train, cam_id=opt.camB)
-        else:
-            self.A_paths = self.preprocess(self.from_dataset.test, cam_id=opt.camA, extra_cam_id=opt.camB)
-            self.B_paths = self.preprocess(self.to_dataset.test, cam_id=opt.camA, extra_cam_id=opt.camB)
+        self.A_paths = self.preprocess(self.from_dataset.train, cam_id=opt.camA)
+        self.B_paths = self.preprocess(self.to_dataset.train, cam_id=opt.camB)
 
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
