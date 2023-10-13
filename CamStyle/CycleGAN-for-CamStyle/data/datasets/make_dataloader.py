@@ -8,23 +8,20 @@ from torchvision.transforms import InterpolationMode
 from data.datasets.bases import ImageDataset
 from timm.data.random_erasing import RandomErasing
 from data.datasets.sampler import RandomIdentitySampler, RandomIdentitySampler_IdUniform
-from data.datasets.market1501 import Market1501, Market1501_grey
+from data.datasets.market1501 import Market1501
 from data.datasets.msmt17 import MSMT17
 from data.datasets.sampler_ddp import RandomIdentitySampler_DDP
 import torch.distributed as dist
 from data.datasets.mm import MM
-from data.datasets.dukemtmcreid import DukeMTMCreID, DukeMTMCreID_grey
-from data.datasets.cuhk03 import CUHK03, CUHK03_grey
+from data.datasets.dukemtmcreid import DukeMTMCreID
+from data.datasets.cuhk03 import CUHK03
 
 __factory = {
     'market1501': Market1501,
-    'market1501_grey': Market1501_grey,
     'msmt17': MSMT17,
     'mm': MM,
     'duke': DukeMTMCreID,
-    'duke_grey': DukeMTMCreID_grey,
-    'cuhk03': CUHK03,
-    'cuhk03_grey': CUHK03_grey
+    'cuhk03': CUHK03
 }
 
 def train_collate_fn(batch):

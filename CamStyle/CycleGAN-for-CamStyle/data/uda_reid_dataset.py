@@ -68,7 +68,7 @@ class UDAReidDataset(BaseDataset):
                 'A_paths': A_path, 'B_paths': B_path}
 
     def __len__(self):
-        return max(self.A_size, self.B_size)
+        return max(self.A_size, self.B_size) if self.opt.isTrain else self.A_size
 
     def name(self):
         return 'UnalignedDataset'
