@@ -37,12 +37,13 @@ def save_images(visuals, image_path, camA=1, camB=2, save_root=None):
 
         if not (cam == camA and label == 'fake_B') and not (cam == camB and label == 'fake_A'):
             continue
-        if label == 'fake_B':
-            label = 'fake_' + str(camA) + 'to' + str(camB)
-        elif label == 'fake_A':
-            label = 'fake_' + str(camB) + 'to' + str(camA)
-
-        image_name = '%s_%s.jpg' % (name, label)
+        # if label == 'fake_B':
+        #     label = 'fake_' + str(camA) + 'to' + str(camB)
+        # elif label == 'fake_A':
+        #     label = 'fake_' + str(camB) + 'to' + str(camA)
+        #
+        # image_name = '%s_%s.jpg' % (name, label)
+        image_name = '%s.jpg' % (name)
         save_path = os.path.join(save_root, image_name)
         util.save_image(im, save_path)
 
