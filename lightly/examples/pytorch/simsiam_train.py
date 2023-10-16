@@ -1,6 +1,6 @@
 from lightly.utils.logger import setup_logger
 from lightly.solver.scheduler_factory import create_scheduler
-from lightly.processor.simclr_processor import do_train
+from lightly.processor.simsiam_processor import do_train
 import random
 import torch
 import numpy as np
@@ -10,11 +10,11 @@ import argparse
 from torch.utils.data import DataLoader
 
 from lightly.data import LightlyDataset
-from lightly.loss import NTXentLoss
-from lightly.transforms.simclr_transform import SimCLRTransform
+from lightly.loss import NegativeCosineSimilarity
+from lightly.transforms.simsiam_transform import SimSiamTransform
 from lightly.models.dinov2.vision_transformer import vit_small_patch14_224_dinov2, vit_base_patch14_224_dinov2
 
-from lightly.models.simclr import SimCLR
+from lightly.models.simsiam import SimSiam
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
         for p in b.parameters(recurse=True):
             p.requires_grad = False
 
-    model = SimCLR(backbone)
+    model = SimSiam(backbone)
 
     if args.resume_path is not None:
         param_dict = torch.load(args.resume_path, map_location='cpu')
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
 
-    transform = SimCLRTransform(input_size=input_size, gaussian_blur=0.0)
+    transform = SimSiamTransform(input_size=input_size)
     # dataset = torchvision.datasets.CIFAR10(
     #     "datasets/cifar10", download=True, transform=transform
     # )
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         num_workers=8,
     )
 
-    criterion = NTXentLoss()
+    criterion = NegativeCosineSimilarity()
     optimizer = torch.optim.SGD(model.parameters(), lr=args.base_lr)
 
     logger.info('===========using cosine learning rate=======')

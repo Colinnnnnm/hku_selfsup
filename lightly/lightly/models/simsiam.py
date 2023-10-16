@@ -37,7 +37,7 @@ class SimSiam(nn.Module):
     def __init__(
         self,
         backbone: nn.Module,
-        num_ftrs: int = 2048,
+        # num_ftrs: int = 2048,
         proj_hidden_dim: int = 2048,
         pred_hidden_dim: int = 512,
         out_dim: int = 2048,
@@ -45,6 +45,7 @@ class SimSiam(nn.Module):
         super(SimSiam, self).__init__()
 
         self.backbone = backbone
+        num_ftrs = backbone.num_features
         self.num_ftrs = num_ftrs
         self.proj_hidden_dim = proj_hidden_dim
         self.pred_hidden_dim = pred_hidden_dim
