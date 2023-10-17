@@ -75,7 +75,13 @@ _C.MODEL.SIE_COE = 3.0
 _C.MODEL.SIE_CAMERA = False
 _C.MODEL.SIE_VIEW = False
 
+_C.MODEL.FREEZE_CLS = False
+_C.MODEL.FREEZE_POS = False
+_C.MODEL.USE_COS_POS = False
+_C.MODEL.FREEZE_PATCH = False
 _C.MODEL.FREEZE_BASE = False
+_C.MODEL.FREEZE_BASE_START = 0
+_C.MODEL.FREEZE_BASE_END = 0
 
 # -----------------------------------------------------------------------------
 # INPUT

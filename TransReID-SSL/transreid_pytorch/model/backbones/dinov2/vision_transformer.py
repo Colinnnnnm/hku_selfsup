@@ -360,13 +360,34 @@ class DinoVisionTransformer(nn.Module):
         print('Load %d / %d layers.'%(count,len(self.state_dict().keys())))
 
 
-    def freeze_backbone(self):
+    def freeze(self, cfg):
         # pass
-        for p in [self.cls_token, self.pos_embed, self.mask_token]:
-           p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:3]]:
-           for p in m.parameters(recurse=True):
-               p.requires_grad = False
+        if cfg.MODEL.FREEZE_CLS:
+            self.cls_token.requires_grad = False
+        if cfg.MODEL.FREEZE_POS:
+            self.pos_embed.requires_grad = False
+            if cfg.MODEL.USE_COS_POS:
+                _, length, d_model = self.pos_embed.size()
+                if d_model % 2 != 0:
+                    raise ValueError("Cannot use sin/cos positional encoding with "
+                                     "odd dim (got dim={:d})".format(d_model))
+                position = torch.arange(0, length).unsqueeze(1)
+                div_term = torch.exp((torch.arange(0, d_model, 2, dtype=torch.float) *
+                                      -(math.log(10000.0) / d_model)))
+                self.pos_embed[0, :, 0::2] = torch.sin(position.float() * div_term)
+                self.pos_embed[0, :, 1::2] = torch.cos(position.float() * div_term)
+
+        self.mask_token.requires_grad = False
+        if cfg.MODEL.FREEZE_PATCH:
+            for p in self.patch_embed.parameters(recurse=True):
+                p.requires_grad = False
+        if cfg.MODEL.FREEZE_BASE:
+            start = cfg.MODEL.FREEZE_BASE_START
+            end = cfg.MODEL.FREEZE_BASE_END
+            if end < 0:
+                end = len(self.blocks)
+            for p in self.blocks[start:end].parameters(recurse=True):
+                p.requires_grad = False
 
 
 def resize_pos_embed(posemb, posemb_new, hight, width, hw_ratio):

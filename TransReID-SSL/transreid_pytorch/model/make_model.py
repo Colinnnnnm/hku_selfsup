@@ -206,8 +206,6 @@ class build_transformer(nn.Module):
         if pretrain_choice == 'imagenet':
             self.base.load_param(model_path,hw_ratio=cfg.MODEL.PRETRAIN_HW_RATIO)
             print('Loading pretrained ImageNet model......from {}'.format(model_path))
-        if cfg.MODEL.FREEZE_BASE:
-            self.base.freeze_backbone()
 
         self.num_classes = num_classes
         self.ID_LOSS_TYPE = cfg.MODEL.ID_LOSS_TYPE
@@ -244,6 +242,8 @@ class build_transformer(nn.Module):
         if pretrain_choice == 'self':
             self.load_param(model_path)
 
+        self.freeze(cfg)
+
     def forward(self, x, label=None, cam_label= None, view_label=None):
         global_feat = self.base(x, cam_label=cam_label, view_label=view_label)
         if self.reduce_feat_dim:
@@ -274,6 +274,9 @@ class build_transformer(nn.Module):
             except:
                 continue
         print('Loading pretrained model from {}'.format(trained_path))
+
+    def freeze(self, cfg):
+        self.base.freeze(cfg)
 
 
 class build_transformer_local(nn.Module):

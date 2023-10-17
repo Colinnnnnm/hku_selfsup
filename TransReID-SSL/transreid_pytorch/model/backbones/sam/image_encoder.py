@@ -158,23 +158,23 @@ class ImageEncoderViT(nn.Module):
             )
             self.blocks.append(block)
 
-        self.neck = nn.Sequential(
-            nn.Conv2d(
-                embed_dim,
-                out_chans,
-                kernel_size=1,
-                bias=False,
-            ),
-            LayerNorm2d(out_chans),
-            nn.Conv2d(
-                out_chans,
-                out_chans,
-                kernel_size=3,
-                padding=1,
-                bias=False,
-            ),
-            LayerNorm2d(out_chans),
-        )
+        # self.neck = nn.Sequential(
+        #     nn.Conv2d(
+        #         embed_dim,
+        #         out_chans,
+        #         kernel_size=1,
+        #         bias=False,
+        #     ),
+        #     LayerNorm2d(out_chans),
+        #     nn.Conv2d(
+        #         out_chans,
+        #         out_chans,
+        #         kernel_size=3,
+        #         padding=1,
+        #         bias=False,
+        #     ),
+        #     LayerNorm2d(out_chans),
+        # )
 
         self.gem = GeneralizedMeanPooling()
 
@@ -211,13 +211,13 @@ class ImageEncoderViT(nn.Module):
             for blk in self.blocks:
                 x = blk(x)
 
-        x = self.neck(x.permute(0, 3, 1, 2))
-        x = x.permute(0, 2, 3, 1)
+        # x = self.neck(x.permute(0, 3, 1, 2))
+        # x = x.permute(0, 2, 3, 1)
 
         if self.gem_pool:
-            gf = self.gem(x[:, 1:].permute(0, 2, 1)).squeeze()
-            return x[:, 0, 0] + gf
-        return x[:, 0, 0]
+            gf = self.gem(x.permute(0, 3, 1, 2).flatten(2, 3)).squeeze()
+            return torch.mean(x, dim=[1,2]) + gf
+        return torch.mean(x, dim=[1,2])
 
     def forward(self, x: torch.Tensor, cam_label=None, view_label=None) -> torch.Tensor:
         x = self.forward_features(x, cam_label, view_label)
@@ -244,7 +244,7 @@ class ImageEncoderViT(nn.Module):
                 newmodel[k] = v
                 param_dict = newmodel
         for k, v in param_dict.items():
-            if 'head' in k or 'dist' in k or 'pre_logits' in k:
+            if 'head' in k or 'dist' in k or 'pre_logits' in k or 'neck' in k:
                 continue
             if 'patch_embed.proj.weight' in k and len(v.shape) < 4:
                 # For old models that I trained prior to conv based patchification
@@ -267,12 +267,20 @@ class ImageEncoderViT(nn.Module):
         print('Load %d / %d layers.'%(count,len(self.state_dict().keys())))
 
 
-    def freeze_backbone(self):
+    def freeze(self, cfg):
         # pass
-        for p in [self.pos_embed]:
-            p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:3]]:
-            for p in m.parameters(recurse=True):
+        if cfg.MODEL.FREEZE_POS:
+            self.pos_embed.requires_grad = False
+
+        if cfg.MODEL.FREEZE_PATCH:
+            for p in self.patch_embed.parameters(recurse=True):
+                p.requires_grad = False
+        if cfg.MODEL.FREEZE_BASE:
+            start = cfg.MODEL.FREEZE_BASE_START
+            end = cfg.MODEL.FREEZE_BASE_END
+            if end < 0:
+                end = len(self.blocks)
+            for p in self.blocks[start:end].parameters(recurse=True):
                 p.requires_grad = False
 
 
@@ -703,7 +711,6 @@ def vit_base_patch16_1024_sam(
         local_feature=local_feature,
         **kwargs,
     )
-    model.in_planes = 256
     return model
 
 
@@ -735,5 +742,4 @@ def vit_large_patch16_1024_sam(
         local_feature=local_feature,
         **kwargs,
     )
-    model.in_planes = 256
     return model

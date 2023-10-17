@@ -409,7 +409,7 @@ class TransReID(nn.Module):
                 print('shape do not match in k :{}: param_dict{} vs self.state_dict(){}'.format(k, v.shape, self.state_dict()[k].shape))
         print('Load %d / %d layers.'%(count,len(self.state_dict().keys())))
 
-    def freeze_backbone(self):
+    def freeze(self, cfg):
         pass
 
 

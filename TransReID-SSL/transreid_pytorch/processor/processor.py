@@ -22,13 +22,13 @@ def do_train(cfg,
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     eval_period = cfg.SOLVER.EVAL_PERIOD
 
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     epochs = cfg.SOLVER.MAX_EPOCHS
 
     logger = logging.getLogger("transreid.train")
     logger.info('start training')
     _LOCAL_PROCESS_GROUP = None
-    if device:
+    if device == "cuda":
         model.to(local_rank)
         if torch.cuda.device_count() > 1 and cfg.MODEL.DIST_TRAIN:
             logger.info('Using {} GPUs for training'.format(torch.cuda.device_count()))
@@ -75,7 +75,8 @@ def do_train(cfg,
             loss_meter.update(loss.item(), img.shape[0])
             acc_meter.update(acc, 1)
 
-            torch.cuda.synchronize()
+            if device == "cuda":
+                torch.cuda.synchronize()
             if cfg.MODEL.DIST_TRAIN:
                 if dist.get_rank() == 0:
                     if (n_iter + 1) % log_period == 0:
