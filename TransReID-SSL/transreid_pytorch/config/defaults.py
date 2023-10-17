@@ -127,6 +127,10 @@ _C.DATALOADER.NUM_INSTANCE = 16
 # remove tail data
 _C.DATALOADER.REMOVE_TAIL = 0
 
+_C.DATALOADER.USE_COLOR_JITTER = False
+
+_C.DATALOADER.USE_GRAYSCALE = False
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

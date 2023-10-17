@@ -67,21 +67,26 @@ def val_collate_fn(batch):
 #             return F.pad(image, [0, top_pad, 0, bottom_pad], 0, 'constant')
 
 def make_dataloader(cfg):
-    train_transforms = T.Compose([
+    train_transforms_list = [
             # AspectPad(cfg.INPUT.SIZE_TRAIN),
             T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
             T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
-            T.RandomApply(
-                [T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
-                p=0.8
-            ),
-            T.RandomGrayscale(p=0.2),
             T.Pad(cfg.INPUT.PADDING),
             T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
             T.ToTensor(),
             T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD),
             RandomErasing(probability=cfg.INPUT.RE_PROB, mode='pixel', max_count=1, device='cpu'),
-        ])
+        ]
+
+    if cfg.DATALOADER.USE_COLOR_JITTER:
+        train_transforms_list.insert(2, T.RandomApply(
+                [T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
+                p=0.8
+            ))
+    if cfg.DATALOADER.USE_GRAYSCALE:
+        train_transforms_list.insert(3, T.RandomGrayscale(p=0.2))
+
+    train_transforms = T.Compose(train_transforms_list)
 
     val_transforms = T.Compose([
         # AspectPad(cfg.INPUT.SIZE_TRAIN),
