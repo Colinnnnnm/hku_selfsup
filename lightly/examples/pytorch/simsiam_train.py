@@ -45,8 +45,14 @@ if __name__ == '__main__':
     parser.add_argument("--log-period", default=10, type=int)
     parser.add_argument("--checkpoint-period", default=60, type=int)
     parser.add_argument("--eval-period", default=5, type=int)
-    parser.add_argument("--start-freeze", default=3, type=int)
-    parser.add_argument("--end-freeze", default=None, type=int)
+    parser.add_argument("--freeze-cls", default=False, type=bool)
+    parser.add_argument("--freeze-pos", default=False, type=bool)
+    parser.add_argument("--use-cos-pos", default=False, type=bool)
+    parser.add_argument("--freeze-patch", default=False, type=bool)
+    parser.add_argument("--freeze-start", default=False, type=bool)
+    parser.add_argument("--freeze-base-start", default=6, type=int)
+    parser.add_argument("--freeze-base-end", default=-1, type=int)
+    parser.add_argument("--pretrain-hw-ratio", default=1, type=int)
     parser.add_argument("--model-fn", default="vit_small_patch14_224_dinov2", type=str)
     parser.add_argument("--train-root",
                         default="datasets/Market-1501-v15.09.15/bounding_box_train",
@@ -94,13 +100,9 @@ if __name__ == '__main__':
         "vit_base_patch14_224_dinov2": vit_base_patch14_224_dinov2
     }
 
-    backbone = model_dict[args.model_fn](img_size=input_size, pretrained_path=args.pretrained_path)
-
-    start_freeze = args.start_freeze
-    end_freeze = args.end_freeze or len(backbone.blocks)
-    for b in backbone.blocks[start_freeze:end_freeze]:
-        for p in b.parameters(recurse=True):
-            p.requires_grad = False
+    backbone = model_dict[args.model_fn](img_size=input_size)
+    backbone.load_param(args.pretrained_path, args.pretrain_hw_ratio)
+    backbone.freeze(args)
 
     model = SimSiam(backbone)
 

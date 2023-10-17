@@ -95,8 +95,7 @@ class DinoVisionTransformer(nn.Module):
         block_chunks=1,
         local_feature=False,
         hw_ratio=1,
-        stem_conv=False,
-        pretrained_path=''
+        stem_conv=False
     ):
         """
         Args:
@@ -203,8 +202,6 @@ class DinoVisionTransformer(nn.Module):
         self.mask_token = nn.Parameter(torch.zeros(1, embed_dim))
 
         self.init_weights()
-
-        self.load_param(pretrained_path,hw_ratio)
 
     def init_weights(self):
         trunc_normal_(self.pos_embed, std=0.02)
@@ -324,14 +321,34 @@ class DinoVisionTransformer(nn.Module):
                 pass
         print('Load %d / %d layers.'%(count,len(self.state_dict().keys())))
 
-
-    def freeze_backbone(self):
+    def freeze(self, args):
         # pass
-        for p in [self.cls_token, self.pos_embed, self.mask_token]:
-           p.requires_grad = False
-        for m in [self.patch_embed, self.blocks[:3]]:
-           for p in m.parameters(recurse=True):
-               p.requires_grad = False
+        if args.freeze_cls:
+            self.cls_token.requires_grad = False
+        if args.freeze_pos:
+            self.pos_embed.requires_grad = False
+            if args.use_cos_pos:
+                _, length, d_model = self.pos_embed.size()
+                if d_model % 2 != 0:
+                    raise ValueError("Cannot use sin/cos positional encoding with "
+                                     "odd dim (got dim={:d})".format(d_model))
+                position = torch.arange(0, length).unsqueeze(1)
+                div_term = torch.exp((torch.arange(0, d_model, 2, dtype=torch.float) *
+                                      -(math.log(10000.0) / d_model)))
+                self.pos_embed[0, :, 0::2] = torch.sin(position.float() * div_term)
+                self.pos_embed[0, :, 1::2] = torch.cos(position.float() * div_term)
+
+        self.mask_token.requires_grad = False
+        if args.freeze_patch:
+            for p in self.patch_embed.parameters(recurse=True):
+                p.requires_grad = False
+        if args.freeze_start:
+            start = args.freeze_base_start
+            end = args.freeze_base_end
+            if end < 0:
+                end = len(self.blocks)
+            for p in self.blocks[start:end].parameters(recurse=True):
+                p.requires_grad = False
 
 
 def resize_pos_embed(posemb, posemb_new, hight, width, hw_ratio):
@@ -364,7 +381,6 @@ def vit_small_patch14_224_dinov2(
         stride_size=14,
         drop_path_rate=0.1,
         local_feature=False,
-        pretrained_path='',
         **kwargs):
     model = DinoVisionTransformer(
         img_size=img_size,
@@ -380,7 +396,6 @@ def vit_small_patch14_224_dinov2(
         ffn_layer = "mlp",#g
         block_chunks=0,#g
         local_feature=local_feature,
-        pretrained_path=pretrained_path,
         block_fn=partial(Block, attn_class=MemEffAttention),#l
         **kwargs,
     )
@@ -393,7 +408,6 @@ def vit_base_patch14_224_dinov2(
         stride_size=14,
         drop_path_rate=0.1,
         local_feature=False,
-        pretrained_path='',
         **kwargs):
     model = DinoVisionTransformer(
         img_size=img_size,
@@ -408,7 +422,6 @@ def vit_base_patch14_224_dinov2(
         init_values=1.0,
         block_chunks=0,
         local_feature=local_feature,
-        pretrained_path=pretrained_path,
         block_fn=partial(Block, attn_class=MemEffAttention),
         **kwargs,
     )
@@ -420,7 +433,6 @@ def vit_large_patch14_224_dinov2(
         stride_size=14,
         drop_path_rate=0.1,
         local_feature=False,
-        pretrained_path='',
         **kwargs):
     model = DinoVisionTransformer(
         img_size=img_size,
@@ -435,7 +447,6 @@ def vit_large_patch14_224_dinov2(
         init_values=1.0,
         block_chunks=0,
         local_feature=local_feature,
-        pretrained_path=pretrained_path,
         block_fn=partial(Block, attn_class=MemEffAttention),
         **kwargs,
     )
