@@ -333,7 +333,7 @@ class DinoVisionTransformer(nn.Module):
                 k = k.replace("backbone.", "")
                 newmodel[k] = v
             param_dict = newmodel
-        if 'simsiam' in param_dict:
+        if 'pretext' in param_dict:
             obj = param_dict["simsiam"]
             print('Convert simsiam model......')
             newmodel = {}
