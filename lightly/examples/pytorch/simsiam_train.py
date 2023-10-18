@@ -49,7 +49,7 @@ if __name__ == '__main__':
     parser.add_argument("--freeze-pos", default=False, type=bool)
     parser.add_argument("--use-cos-pos", default=False, type=bool)
     parser.add_argument("--freeze-patch", default=False, type=bool)
-    parser.add_argument("--freeze-start", default=False, type=bool)
+    parser.add_argument("--freeze-base", default=False, type=bool)
     parser.add_argument("--freeze-base-start", default=6, type=int)
     parser.add_argument("--freeze-base-end", default=-1, type=int)
     parser.add_argument("--pretrain-hw-ratio", default=1, type=int)

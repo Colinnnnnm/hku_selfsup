@@ -342,7 +342,7 @@ class DinoVisionTransformer(nn.Module):
         if args.freeze_patch:
             for p in self.patch_embed.parameters(recurse=True):
                 p.requires_grad = False
-        if args.freeze_start:
+        if args.freeze_base:
             start = args.freeze_base_start
             end = args.freeze_base_end
             if end < 0:
