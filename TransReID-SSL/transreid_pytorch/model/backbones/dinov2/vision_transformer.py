@@ -332,7 +332,17 @@ class DinoVisionTransformer(nn.Module):
                 old_k = k
                 k = k.replace("backbone.", "")
                 newmodel[k] = v
-                param_dict = newmodel
+            param_dict = newmodel
+        if 'simsiam' in param_dict:
+            obj = param_dict["simsiam"]
+            print('Convert simsiam model......')
+            newmodel = {}
+            for k, v in obj.items():
+                if not k.startswith("backbone."):
+                    continue
+                k = k.replace("backbone.", "")
+                newmodel[k] = v
+            param_dict = newmodel
         for k, v in param_dict.items():
             if 'head' in k or 'dist' in k or 'pre_logits' in k:
                 continue
