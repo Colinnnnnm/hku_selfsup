@@ -61,8 +61,9 @@ def do_train(args,
                 .format(epoch, time_per_batch * len(train_dataloader), train_dataloader.batch_size / time_per_batch))
 
         if epoch % checkpoint_period == 0:
-            torch.save(model.state_dict(),
-                       os.path.join(args.output_dir, args.model_name + '_{}.pth'.format(epoch)))
+            torch.save({
+                "simsiam": model.state_dict()
+            }, os.path.join(args.output_dir, args.model_name + '_{}.pth'.format(epoch)))
 
         if epoch % eval_period == 0:
             model.eval()
