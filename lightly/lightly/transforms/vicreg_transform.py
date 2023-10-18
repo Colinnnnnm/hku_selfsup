@@ -11,7 +11,7 @@ from lightly.transforms.solarize import RandomSolarization
 from lightly.transforms.utils import IMAGENET_NORMALIZE
 
 
-class VICRegTransform(MultiViewTransform):
+class VICRegTransform:
     """Implements the transformations for VICReg.
 
     Input to this transform:
@@ -80,7 +80,7 @@ class VICRegTransform(MultiViewTransform):
 
     def __init__(
         self,
-        input_size: int = 224,
+        input_size: Tuple[int, int] = [224, 224],
         cj_prob: float = 0.8,
         cj_strength: float = 0.5,
         cj_bright: float = 0.8,
@@ -119,13 +119,19 @@ class VICRegTransform(MultiViewTransform):
             rr_degrees=rr_degrees,
             normalize=normalize,
         )
-        super().__init__(transforms=[view_transform, view_transform])
+        # super().__init__(transforms=[view_transform, view_transform])
+        eval_transform = VICRegEvaluateTransform(
+            input_size=input_size,
+            normalize=normalize,
+        )
+        self.train_transform = view_transform
+        self.eval_transform = eval_transform
 
 
 class VICRegViewTransform:
     def __init__(
         self,
-        input_size: int = 224,
+        input_size: Tuple[int, int] = [224, 224],
         cj_prob: float = 0.8,
         cj_strength: float = 0.5,
         cj_bright: float = 0.8,
@@ -156,10 +162,41 @@ class VICRegViewTransform:
             random_rotation_transform(rr_prob=rr_prob, rr_degrees=rr_degrees),
             T.RandomHorizontalFlip(p=hf_prob),
             T.RandomVerticalFlip(p=vf_prob),
-            T.RandomApply([color_jitter], p=cj_prob),
-            T.RandomGrayscale(p=random_gray_scale),
+            # T.RandomApply([color_jitter], p=cj_prob),
+            # T.RandomGrayscale(p=random_gray_scale),
             RandomSolarization(prob=solarize_prob),
             GaussianBlur(kernel_size=kernel_size, sigmas=sigmas, prob=gaussian_blur),
+            T.ToTensor(),
+        ]
+        if normalize:
+            transform += [T.Normalize(mean=normalize["mean"], std=normalize["std"])]
+        self.transform = T.Compose(transform)
+
+    def __call__(self, image: Union[Tensor, Image]) -> Tensor:
+        """
+        Applies the transforms to the input image.
+
+        Args:
+            image:
+                The input image to apply the transforms to.
+
+        Returns:
+            The transformed image.
+
+        """
+        transformed: Tensor = self.transform(image)
+        return transformed
+
+
+class VICRegEvaluateTransform:
+    def __init__(
+        self,
+        input_size: Tuple[int, int] = [224, 224],
+        normalize: Union[None, Dict[str, List[float]]] = IMAGENET_NORMALIZE,
+    ):
+        transform = [
+            # AspectPad(input_size),
+            T.Resize(size=input_size),
             T.ToTensor(),
         ]
         if normalize:
