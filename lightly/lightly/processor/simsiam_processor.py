@@ -20,7 +20,7 @@ def do_train(args,
     device = "cuda" if torch.cuda.is_available() else "cpu"
     epochs = args.max_epochs
 
-    logger = logging.getLogger("simclr")
+    logger = logging.getLogger("simsiam")
     logger.info('start training')
     _LOCAL_PROCESS_GROUP = None
     if device == "cuda":
@@ -89,7 +89,7 @@ def do_inference(args,
                  eval_dataloader,
                  criterion):
     device = "cuda"
-    logger = logging.getLogger("simclr")
+    logger = logging.getLogger("simsiam")
     logger.info("Enter inferencing")
 
     if device:

@@ -84,7 +84,7 @@ if __name__ == '__main__':
     except:
         pass
 
-    logger = setup_logger("simclr", output_dir, if_train=True)
+    logger = setup_logger("vicreg", output_dir, if_train=True)
     logger.info("Saving model in the path :{}".format(output_dir))
     #  logger.info(args)
 
