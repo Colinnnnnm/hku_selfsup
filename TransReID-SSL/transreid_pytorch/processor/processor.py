@@ -148,7 +148,7 @@ def do_inference(cfg,
                  model,
                  val_loader,
                  num_query):
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     logger = logging.getLogger("transreid.test")
     logger.info("Enter inferencing")
 

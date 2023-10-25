@@ -8,6 +8,7 @@ import os
 import argparse
 
 from torch.utils.data import DataLoader
+from torch.optim import SGD, AdamW
 
 from lightly.data import LightlyDataset
 from lightly.loss.vicreg_loss import VICRegLoss
@@ -53,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument("--freeze-base-end", default=-1, type=int)
     parser.add_argument("--pretrain-hw-ratio", default=1, type=int)
     parser.add_argument("--model-fn", default="vit_small_patch14_224_dinov2", type=str)
+    parser.add_argument("--optimizer", default="SGD", type=str)
     parser.add_argument("--train-root",
                         default="datasets/Market-1501-v15.09.15/bounding_box_train",
                         type=str)
@@ -94,12 +96,10 @@ if __name__ == '__main__':
 
     input_size = (args.image_height, args.image_width)
 
-    model_dict = {
+    backbone = {
         "vit_small_patch14_224_dinov2": vit_small_patch14_224_dinov2,
         "vit_base_patch14_224_dinov2": vit_base_patch14_224_dinov2
-    }
-
-    backbone = model_dict[args.model_fn](img_size=input_size)
+    }[args.model_fn](img_size=input_size)
     backbone.load_param(args.pretrained_path, args.pretrain_hw_ratio)
     backbone.freeze(args)
 
@@ -145,8 +145,16 @@ if __name__ == '__main__':
         num_workers=8,
     )
 
+    optim_parameters = {
+        "lr": args.base_lr,
+        "weight_decay": args.weight_decay
+    }
+
     criterion = VICRegLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.base_lr)
+    optimizer = {
+        "SGD": SGD,
+        "AdamW": AdamW
+    }[args.optimizer](model.parameters(), **optim_parameters)
 
     logger.info('===========using cosine learning rate=======')
     scheduler = create_scheduler(args, optimizer)
