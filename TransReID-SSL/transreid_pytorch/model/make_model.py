@@ -9,6 +9,10 @@ from .backbones.sam.image_encoder import vit_base_patch16_1024_sam, vit_large_pa
 from .backbones.dino.vision_transformer import vit_base_patch8_224_dino, vit_small_patch8_224_dino, vit_base_patch16_224_dino, vit_small_patch16_224_dino
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
 from .backbones.resnet_ibn_a import resnet50_ibn_a,resnet101_ibn_a
+import transformers
+import accelerate
+import peft
+from peft import LoraConfig, get_peft_model
 
 def shuffle_unit(features, shift, group, begin=1):
 
@@ -458,6 +462,31 @@ __factory_T_type = {
     'vit_large_patch16_1024_sam': vit_large_patch16_1024_sam
 }
 
+def print_trainable_parameters(model):
+    """
+    Prints the number of trainable parameters in the model.
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
+    )
+
+config = LoraConfig(
+    r=16,
+    lora_alpha=16,
+    target_modules=["query", "value"],
+    lora_dropout=0.1,
+    bias="none",
+    modules_to_save=["classifier"],
+)
+#model = get_peft_model(model, config)
+#print_trainable_parameters(model)
+
 def make_model(cfg, num_class, camera_num, view_num):
     if cfg.MODEL.NAME == 'transformer':
         if cfg.MODEL.JPM:
@@ -469,4 +498,7 @@ def make_model(cfg, num_class, camera_num, view_num):
     else:
         model = Backbone(num_class, cfg)
         print('===========building ResNet===========')
+    model = get_peft_model(model, config)
+    print('===========building transformer with adapted by LORA ===========')
+    print_trainable_parameters(model)
     return model

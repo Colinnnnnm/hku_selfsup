@@ -1,9 +1,14 @@
 import torch
-import torch.nn as nn
+import torch.nn as nn 
 from .backbones.resnet import ResNet, Bottleneck
 import copy
 from .backbones.vit_pytorch import vit_base_patch16_224_TransReID, vit_small_patch16_224_TransReID, deit_small_patch16_224_TransReID
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
+import transformers
+import accelerate
+import peft
+from peft import LoraConfig, get_peft_model
+
 
 def shuffle_unit(features, shift, group, begin=1):
 
@@ -390,14 +395,45 @@ __factory_T_type = {
     'deit_small_patch16_224_TransReID': deit_small_patch16_224_TransReID
 }
 
+def print_trainable_parameters(model):
+    """
+    Prints the number of trainable parameters in the model.
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
+    )
+
+config = LoraConfig(
+    r=16,
+    lora_alpha=16,
+    target_modules=["query", "value"],
+    lora_dropout=0.1,
+    bias="none",
+    modules_to_save=["classifier"],
+)
+#model = get_peft_model(model, config)
+#print_trainable_parameters(model)
+
 def make_model(cfg, num_class, camera_num, view_num):
     if cfg.MODEL.NAME == 'transformer':
         if cfg.MODEL.JPM:
             model = build_transformer_local(num_class, camera_num, view_num, cfg, __factory_T_type, rearrange=cfg.MODEL.RE_ARRANGE)
-            print('===========building transformer with JPM module ===========')
+            model = get_peft_model(model, config)
+            print('===========building transformer with JPM module adapted by LORA===========')
+            print_trainable_parameters(model)
+
         else:
             model = build_transformer(num_class, camera_num, view_num, cfg, __factory_T_type)
-            print('===========building transformer===========')
+            model = get_peft_model(model, config)
+            print('===========building transformer adapted by LORA===========')
+            print_trainable_parameters(model)
+
     else:
         model = Backbone(num_class, cfg)
         print('===========building ResNet===========')
