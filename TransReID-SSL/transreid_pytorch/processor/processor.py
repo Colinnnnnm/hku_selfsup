@@ -118,6 +118,7 @@ def do_train(cfg,
                     for n_iter, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(val_loader):
                         with torch.no_grad():
                             img = img.to(device)
+                            mapped_img = mapped_img.to(device)
                             camids = camids.to(device)
                             target_view = target_view.to(device)
                             feat, (z0, z1) = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
@@ -133,6 +134,7 @@ def do_train(cfg,
                 for n_iter, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(val_loader):
                     with torch.no_grad():
                         img = img.to(device)
+                        mapped_img = mapped_img.to(device)
                         camids = camids.to(device)
                         target_view = target_view.to(device)
                         feat, (z0, z1) = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
@@ -169,6 +171,7 @@ def do_inference(cfg,
     for n_iter, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(val_loader):
         with torch.no_grad():
             img = img.to(device)
+            mapped_img = mapped_img.to(device)
             camids = camids.to(device)
             target_view = target_view.to(device)
             feat, (z0, z1) = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
