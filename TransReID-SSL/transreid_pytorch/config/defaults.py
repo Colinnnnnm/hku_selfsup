@@ -39,6 +39,7 @@ _C.MODEL.IF_WITH_CENTER = 'no'
 _C.MODEL.ID_LOSS_TYPE = 'softmax'
 _C.MODEL.ID_LOSS_WEIGHT = 1.0
 _C.MODEL.TRIPLET_LOSS_WEIGHT = 1.0
+_C.MODEL.CONTRASTIVE_LOSS_WEIGHT = 1.0
 
 _C.MODEL.METRIC_LOSS_TYPE = 'triplet'
 # If train with multi-gpu ddp mode, options: 'True', 'False'
@@ -131,6 +132,8 @@ _C.DATALOADER.USE_COLOR_JITTER = False
 
 _C.DATALOADER.USE_GRAYSCALE = False
 
+_C.DATALOADER.MAPPING_DIR = ""
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -185,6 +188,8 @@ _C.SOLVER.EVAL_PERIOD = 10
 # contain 16 images per batch
 _C.SOLVER.IMS_PER_BATCH = 64
 _C.SOLVER.TRP_L2 = False
+
+_C.SOLVER.USE_CONTRASTIVE = False
 
 # ---------------------------------------------------------------------------- #
 # TEST

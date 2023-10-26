@@ -1,3 +1,5 @@
+from typing import List, Tuple, Optional
+
 import torch
 import torch.nn as nn
 from .backbones.resnet import ResNet, Bottleneck
@@ -61,6 +63,104 @@ def weights_init_classifier(m):
         nn.init.normal_(m.weight, std=0.001)
         if m.bias:
             nn.init.constant_(m.bias, 0.0)
+
+class ProjectionHead(nn.Module):
+    """Base class for all projection and prediction heads.
+
+    Args:
+        blocks:
+            List of tuples, each denoting one block of the projection head MLP.
+            Each tuple reads (in_features, out_features, batch_norm_layer,
+            non_linearity_layer).
+
+    Examples:
+        >>> # the following projection head has two blocks
+        >>> # the first block uses batch norm an a ReLU non-linearity
+        >>> # the second block is a simple linear layer
+        >>> projection_head = ProjectionHead([
+        >>>     (256, 256, nn.BatchNorm1d(256), nn.ReLU()),
+        >>>     (256, 128, None, None)
+        >>> ])
+
+    """
+
+    def __init__(
+        self, blocks: List[Tuple[int, int, Optional[nn.Module], Optional[nn.Module]]]
+    ):
+        super(ProjectionHead, self).__init__()
+
+        layers = []
+        for input_dim, output_dim, batch_norm, non_linearity in blocks:
+            use_bias = not bool(batch_norm)
+            layers.append(nn.Linear(input_dim, output_dim, bias=use_bias))
+            if batch_norm:
+                layers.append(batch_norm)
+            if non_linearity:
+                layers.append(non_linearity)
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor):
+        """Computes one forward pass through the projection head.
+
+        Args:
+            x:
+                Input of shape bsz x num_ftrs.
+
+        """
+        return self.layers(x)
+
+
+class VICRegProjectionHead(ProjectionHead):
+    """Projection head used for VICReg.
+
+    "The projector network has three linear layers, each with 8192 output
+    units. The first two layers of the projector are followed by a batch
+    normalization layer and rectified linear units." [0]
+
+    [0]: 2022, VICReg, https://arxiv.org/pdf/2105.04906.pdf
+
+    """
+
+    def __init__(
+        self,
+        input_dim: int = 2048,
+        hidden_dim: int = 8192,
+        output_dim: int = 8192,
+        num_layers: int = 3,
+    ):
+        hidden_layers = [
+            (hidden_dim, hidden_dim, nn.BatchNorm1d(hidden_dim), nn.ReLU())
+            for _ in range(num_layers - 2)  # Exclude first and last layer.
+        ]
+        super(VICRegProjectionHead, self).__init__(
+            [
+                (input_dim, hidden_dim, nn.BatchNorm1d(hidden_dim), nn.ReLU()),
+                *hidden_layers,
+                (hidden_dim, output_dim, None, None),
+            ]
+        )
+
+
+class VicRegLLocalProjectionHead(ProjectionHead):
+    """Projection head used for the local head of VICRegL.
+
+    The projector network has three linear layers. The first two layers of the projector
+    are followed by a batch normalization layer and rectified linear units.
+
+    2022, VICRegL, https://arxiv.org/abs/2210.01571
+
+    """
+
+    def __init__(
+        self, input_dim: int = 2048, hidden_dim: int = 8192, output_dim: int = 8192
+    ):
+        super(VicRegLLocalProjectionHead, self).__init__(
+            [
+                (input_dim, hidden_dim, nn.LayerNorm(hidden_dim), nn.ReLU()),
+                (hidden_dim, hidden_dim, nn.LayerNorm(hidden_dim), nn.ReLU()),
+                (hidden_dim, output_dim, None, None),
+            ]
+        )
 
 
 class Backbone(nn.Module):
@@ -166,7 +266,15 @@ class Backbone(nn.Module):
 
 
 class build_transformer(nn.Module):
-    def __init__(self, num_classes, camera_num, view_num, cfg, factory):
+    def __init__(self,
+                num_classes,
+                camera_num,
+                view_num,
+                cfg,
+                factory,
+                proj_hidden_dim: int = 2048,
+                out_dim: int = 2048,
+                num_layers: int = 3):
         super(build_transformer, self).__init__()
         last_stride = cfg.MODEL.LAST_STRIDE
         model_path = cfg.MODEL.PRETRAIN_PATH
@@ -178,6 +286,9 @@ class build_transformer(nn.Module):
         self.reduce_feat_dim = cfg.MODEL.REDUCE_FEAT_DIM
         self.feat_dim = cfg.MODEL.FEAT_DIM
         self.dropout_rate = cfg.MODEL.DROPOUT_RATE
+        self.proj_hidden_dim = proj_hidden_dim
+        self.out_dim = out_dim
+        self.num_layers = num_layers
 
 
         print('using Transformer_type: {} as a backbone'.format(cfg.MODEL.TRANSFORMER_TYPE))
@@ -242,14 +353,32 @@ class build_transformer(nn.Module):
         if pretrain_choice == 'self':
             self.load_param(model_path)
 
+        self.use_contrastive = cfg.SOLVER.USE_CONTRASTIVE
+        if self.use_contrastive:
+            self.projection_head = VICRegProjectionHead(
+                input_dim=self.base.num_features,
+                hidden_dim=self.proj_hidden_dim,
+                output_dim=self.out_dim,
+                num_layers=self.num_layers,
+            )
+
         self.freeze(cfg)
 
-    def forward(self, x, label=None, cam_label= None, view_label=None):
+    def forward(self, x, mapped_x=None, label=None, cam_label= None, view_label=None):
         global_feat = self.base(x, cam_label=cam_label, view_label=view_label)
         if self.reduce_feat_dim:
             global_feat = self.fcneck(global_feat)
         feat = self.bottleneck(global_feat)
         feat_cls = self.dropout(feat)
+
+        z0, z1 = None, None
+
+        if self.use_contrastive:
+            f0 = global_feat.flatten(start_dim=1)
+            z0 = self.projection_head(f0)
+            f1 = self.base(mapped_x, cam_label=cam_label, view_label=view_label).flatten(start_dim=1)
+            z1 = self.projection_head(f1)
+
 
         if self.training:
             if self.ID_LOSS_TYPE in ('arcface', 'cosface', 'amsoftmax', 'circle'):
@@ -257,14 +386,14 @@ class build_transformer(nn.Module):
             else:
                 cls_score = self.classifier(feat_cls)
 
-            return cls_score, global_feat  # global feature for triplet loss
+            return cls_score, global_feat, (z0, z1)  # global feature for triplet loss
         else:
             if self.neck_feat == 'after':
                 # print("Test with feature after BN")
-                return feat
+                return feat, (z0, z1)
             else:
                 # print("Test with feature before BN")
-                return global_feat
+                return global_feat, (z0, z1)
 
     def load_param(self, trained_path):
         param_dict = torch.load(trained_path, map_location = 'cpu')

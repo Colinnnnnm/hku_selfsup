@@ -31,17 +31,17 @@ def train_collate_fn(batch):
     """
     # collate_fn这个函数的输入就是一个list，list的长度是一个batch size，list中的每个元素都是__getitem__得到的结果
     """
-    imgs, pids, camids, viewids , _ = zip(*batch)
+    imgs, pids, camids, viewids , img_paths, mapped_imgs = zip(*batch)
     pids = torch.tensor(pids, dtype=torch.int64)
-    viewids = torch.tensor(viewids, dtype=torch.int64)
     camids = torch.tensor(camids, dtype=torch.int64)
-    return torch.stack(imgs, dim=0), pids, camids, viewids,
+    viewids = torch.tensor(viewids, dtype=torch.int64)
+    return torch.stack(imgs, dim=0), pids, camids, viewids, torch.stack(mapped_imgs, dim=0),
 
 def val_collate_fn(batch):
-    imgs, pids, camids, viewids, img_paths = zip(*batch)
+    imgs, pids, camids, viewids, img_paths, mapped_imgs = zip(*batch)
     viewids = torch.tensor(viewids, dtype=torch.int64)
     camids_batch = torch.tensor(camids, dtype=torch.int64)
-    return torch.stack(imgs, dim=0), pids, camids, camids_batch, viewids, img_paths
+    return torch.stack(imgs, dim=0), pids, camids, camids_batch, viewids, img_paths, torch.stack(mapped_imgs, dim=0),
 
 
 # class AspectPad:
@@ -102,8 +102,8 @@ def make_dataloader(cfg):
     else:
         dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
 
-    train_set = ImageDataset(dataset.train, train_transforms)
-    train_set_normal = ImageDataset(dataset.train, val_transforms)
+    train_set = ImageDataset(dataset.train, train_transforms, cfg.DATALOADER.MAPPING_DIR)
+    train_set_normal = ImageDataset(dataset.train, val_transforms, cfg.DATALOADER.MAPPING_DIR)
     num_classes = dataset.num_train_pids
     cam_num = dataset.num_train_cams
     view_num = dataset.num_train_vids
@@ -144,7 +144,7 @@ def make_dataloader(cfg):
     else:
         print('unsupported sampler! expected softmax or triplet but got {}'.format(cfg.SAMPLER))
 
-    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms)
+    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms, cfg.DATALOADER.MAPPING_DIR)
 
     val_loader = DataLoader(
         val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers,

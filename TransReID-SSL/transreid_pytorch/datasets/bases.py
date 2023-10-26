@@ -1,3 +1,5 @@
+import os.path
+
 from PIL import Image, ImageFile
 
 from torch.utils.data import Dataset
@@ -69,9 +71,13 @@ class BaseImageDataset(BaseDataset):
         logger.info("  ----------------------------------------")
 
 class ImageDataset(Dataset):
-    def __init__(self, dataset, transform=None):
+    def __init__(self,
+                 dataset,
+                 transform=None,
+                 mapping_dir=None):
         self.dataset = dataset
         self.transform = transform
+        self.mapping_dir = mapping_dir
 
     def __len__(self):
         return len(self.dataset)
@@ -83,5 +89,15 @@ class ImageDataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, pid, camid, trackid, img_path
+        mapped_img = None
+        if self.mapping_dir:
+            image_name = os.path.basename(img_path)
+            folder_name = os.path.basename(os.path.dirname(img_path))
+            mapped_path = os.path.join(self.mapping_dir, folder_name, image_name)
+            mapped_img = read_image(mapped_path)
+
+            if self.transform is not None:
+                mapped_img = self.transform(mapped_img)
+
+        return img, pid, camid, trackid, img_path, mapped_img if self.mapping_dir else img
         #  return img, pid, camid, trackid,img_path.split('/')[-1]
