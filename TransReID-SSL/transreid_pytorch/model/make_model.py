@@ -476,14 +476,7 @@ def print_trainable_parameters(model):
         f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
     )
 
-config = LoraConfig(
-    r=16,
-    lora_alpha=16,
-    target_modules=["query", "value"],
-    lora_dropout=0.1,
-    bias="none",
-    modules_to_save=["classifier"],
-)
+
 #model = get_peft_model(model, config)
 #print_trainable_parameters(model)
 
@@ -498,6 +491,14 @@ def make_model(cfg, num_class, camera_num, view_num):
     else:
         model = Backbone(num_class, cfg)
         print('===========building ResNet===========')
+    config = LoraConfig(
+    r=16,
+    lora_alpha=16,
+    target_modules=["query", "value"],
+    lora_dropout=0.1,
+    bias="none",
+    modules_to_save=["classifier"],
+    )
     model = get_peft_model(model, config)
     print('===========building transformer with adapted by LORA ===========')
     print_trainable_parameters(model)
