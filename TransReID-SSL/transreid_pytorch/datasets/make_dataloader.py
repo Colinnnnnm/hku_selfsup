@@ -88,6 +88,16 @@ def make_dataloader(cfg):
 
     train_transforms = T.Compose(train_transforms_list)
 
+    mapping_transforms = T.Compose([
+        T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
+        T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
+        T.Pad(cfg.INPUT.PADDING),
+        T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
+        T.ToTensor(),
+        T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD),
+        RandomErasing(probability=cfg.INPUT.RE_PROB, mode='pixel', max_count=1, device='cpu'),
+    ])
+
     val_transforms = T.Compose([
         # AspectPad(cfg.INPUT.SIZE_TRAIN),
         T.Resize(cfg.INPUT.SIZE_TEST),
@@ -102,8 +112,8 @@ def make_dataloader(cfg):
     else:
         dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
 
-    train_set = ImageDataset(dataset.train, train_transforms, cfg.DATALOADER.MAPPING_DIR)
-    train_set_normal = ImageDataset(dataset.train, val_transforms, cfg.DATALOADER.MAPPING_DIR)
+    train_set = ImageDataset(dataset.train, train_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
+    train_set_normal = ImageDataset(dataset.train, val_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
     num_classes = dataset.num_train_pids
     cam_num = dataset.num_train_cams
     view_num = dataset.num_train_vids
@@ -144,7 +154,7 @@ def make_dataloader(cfg):
     else:
         print('unsupported sampler! expected softmax or triplet but got {}'.format(cfg.SAMPLER))
 
-    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms, cfg.DATALOADER.MAPPING_DIR)
+    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
 
     val_loader = DataLoader(
         val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers,

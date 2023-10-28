@@ -74,10 +74,12 @@ class ImageDataset(Dataset):
     def __init__(self,
                  dataset,
                  transform=None,
-                 mapping_dir=None):
+                 mapping_dir=None,
+                 mapping_transform=None):
         self.dataset = dataset
         self.transform = transform
         self.mapping_dir = mapping_dir
+        self.mapping_transform = mapping_transform
 
     def __len__(self):
         return len(self.dataset)
@@ -96,8 +98,8 @@ class ImageDataset(Dataset):
             mapped_path = os.path.join(self.mapping_dir, folder_name, image_name)
             mapped_img = read_image(mapped_path)
 
-            if self.transform is not None:
-                mapped_img = self.transform(mapped_img)
+            if self.mapping_transform is not None:
+                mapped_img = self.mapping_transform(mapped_img)
 
         return img, pid, camid, trackid, img_path, mapped_img if self.mapping_dir else img
         #  return img, pid, camid, trackid,img_path.split('/')[-1]
