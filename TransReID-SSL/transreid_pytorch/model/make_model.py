@@ -492,14 +492,15 @@ def make_model(cfg, num_class, camera_num, view_num):
         model = Backbone(num_class, cfg)
         print('===========building ResNet===========')
     config = LoraConfig(
-    r=16,
-    lora_alpha=16,
-    target_modules=["query", "value"],
-    lora_dropout=0.1,
-    bias="none",
-    modules_to_save=["classifier"],
+        r=16,
+        lora_alpha=16,
+        target_modules=["query", "value"],
+        lora_dropout=0.1,
+        bias="none",
+        modules_to_save=["classifier"],
     )
-    model = get_peft_model(model, config)
+    lora_model = get_peft_model(model, config)
+    model = lora_model
     print('===========building transformer with adapted by LORA ===========')
     print_trainable_parameters(model)
     return model
