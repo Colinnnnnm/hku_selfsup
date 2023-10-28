@@ -180,6 +180,7 @@ class build_transformer(nn.Module):
         self.reduce_feat_dim = cfg.MODEL.REDUCE_FEAT_DIM
         self.feat_dim = cfg.MODEL.FEAT_DIM
         self.dropout_rate = cfg.MODEL.DROPOUT_RATE
+        self.config = cfg
 
 
         print('using Transformer_type: {} as a backbone'.format(cfg.MODEL.TRANSFORMER_TYPE))
