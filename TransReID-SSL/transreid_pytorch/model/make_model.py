@@ -371,14 +371,6 @@ class build_transformer(nn.Module):
         feat = self.bottleneck(global_feat)
         feat_cls = self.dropout(feat)
 
-        z0, z1 = None, None
-
-        if self.use_contrastive:
-            f0 = global_feat.flatten(start_dim=1)
-            z0 = self.projection_head(f0)
-            f1 = self.base(mapped_x, cam_label=cam_label, view_label=view_label).flatten(start_dim=1)
-            z1 = self.projection_head(f1)
-
 
         if self.training:
             if self.ID_LOSS_TYPE in ('arcface', 'cosface', 'amsoftmax', 'circle'):
@@ -386,14 +378,22 @@ class build_transformer(nn.Module):
             else:
                 cls_score = self.classifier(feat_cls)
 
+            z0, z1 = None, None
+
+            if self.use_contrastive:
+                f0 = global_feat.flatten(start_dim=1)
+                z0 = self.projection_head(f0)
+                f1 = self.base(mapped_x, cam_label=cam_label, view_label=view_label).flatten(start_dim=1)
+                z1 = self.projection_head(f1)
+
             return cls_score, global_feat, (z0, z1)  # global feature for triplet loss
         else:
             if self.neck_feat == 'after':
                 # print("Test with feature after BN")
-                return feat, (z0, z1)
+                return feat
             else:
                 # print("Test with feature before BN")
-                return global_feat, (z0, z1)
+                return global_feat
 
     def load_param(self, trained_path):
         param_dict = torch.load(trained_path, map_location = 'cpu')
