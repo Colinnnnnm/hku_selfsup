@@ -20,4 +20,8 @@ torchtoolbox==0.1.5
 torchvision==0.12.0+cu113
 wrapt==1.12.1
 yacs==0.1.7
-transformers accelerate evaluate datasets git+https://github.com/huggingface/peft
+transformers
+accelerate
+evaluate
+datasets
+git+https://github.com/huggingface/peft
