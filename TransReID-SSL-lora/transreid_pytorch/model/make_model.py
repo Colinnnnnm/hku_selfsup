@@ -475,7 +475,7 @@ def make_model(cfg, num_class, camera_num, view_num):
     config = LoraConfig(
         r=16,
         lora_alpha=16,
-        target_modules=["query", "value"],
+        target_modules=["qkv"],
         lora_dropout=0.1,
         bias="none",
         modules_to_save=["classifier"],
