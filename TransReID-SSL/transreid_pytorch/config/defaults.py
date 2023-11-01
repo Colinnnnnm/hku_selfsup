@@ -134,6 +134,8 @@ _C.DATALOADER.USE_GRAYSCALE = False
 
 _C.DATALOADER.MAPPING_DIR = ""
 
+_C.DATALOADER.MAPPING_GRAYSCALE = False
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

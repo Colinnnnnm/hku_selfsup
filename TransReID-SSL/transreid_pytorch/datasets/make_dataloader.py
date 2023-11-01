@@ -67,44 +67,6 @@ def val_collate_fn(batch):
 #             return F.pad(image, [0, top_pad, 0, bottom_pad], 0, 'constant')
 
 def make_dataloader(cfg):
-    train_transforms_list = [
-            # AspectPad(cfg.INPUT.SIZE_TRAIN),
-            T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
-            T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
-            T.Pad(cfg.INPUT.PADDING),
-            T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
-            T.ToTensor(),
-            T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD),
-            RandomErasing(probability=cfg.INPUT.RE_PROB, mode='pixel', max_count=1, device='cpu'),
-        ]
-
-    if cfg.DATALOADER.USE_COLOR_JITTER:
-        train_transforms_list.insert(2, T.RandomApply(
-                [T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
-                p=0.8
-            ))
-    if cfg.DATALOADER.USE_GRAYSCALE:
-        train_transforms_list.insert(3, T.RandomGrayscale(p=0.2))
-
-    train_transforms = T.Compose(train_transforms_list)
-
-    mapping_transforms = T.Compose([
-        T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
-        T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
-        T.Pad(cfg.INPUT.PADDING),
-        T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
-        T.ToTensor(),
-        T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD),
-        RandomErasing(probability=cfg.INPUT.RE_PROB, mode='pixel', max_count=1, device='cpu'),
-    ])
-
-    val_transforms = T.Compose([
-        # AspectPad(cfg.INPUT.SIZE_TRAIN),
-        T.Resize(cfg.INPUT.SIZE_TEST),
-        T.ToTensor(),
-        T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)
-    ])
-
     num_workers = cfg.DATALOADER.NUM_WORKERS
 
     if cfg.DATASETS.NAMES == 'ourapi':
@@ -112,12 +74,13 @@ def make_dataloader(cfg):
     else:
         dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
 
-    train_set = ImageDataset(dataset.train, train_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
-    train_set_normal = ImageDataset(dataset.train, val_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
+    train_set = ImageDataset(cfg, dataset.train, "train")
+    train_set_normal = ImageDataset(cfg, dataset.train, "val")
     num_classes = dataset.num_train_pids
     cam_num = dataset.num_train_cams
     view_num = dataset.num_train_vids
 
+    train_loader = None
     if cfg.DATALOADER.SAMPLER in ['softmax_triplet', 'img_triplet']:
         print('using img_triplet sampler')
         if cfg.MODEL.DIST_TRAIN:
@@ -154,7 +117,7 @@ def make_dataloader(cfg):
     else:
         print('unsupported sampler! expected softmax or triplet but got {}'.format(cfg.SAMPLER))
 
-    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms, cfg.DATALOADER.MAPPING_DIR, mapping_transforms)
+    val_set = ImageDataset(cfg, dataset.query + dataset.gallery, "val")
 
     val_loader = DataLoader(
         val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers,

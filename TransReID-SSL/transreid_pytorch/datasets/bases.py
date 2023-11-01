@@ -4,9 +4,15 @@ from PIL import Image, ImageFile
 
 from torch.utils.data import Dataset
 import os.path as osp
-import random
+
 import torch
+import torchvision.transforms as T
+import torchvision.transforms.functional as F
 import logging
+
+from torchvision.transforms import InterpolationMode
+from timm.data.random_erasing import RandomErasing
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -72,34 +78,66 @@ class BaseImageDataset(BaseDataset):
 
 class ImageDataset(Dataset):
     def __init__(self,
+                 cfg,
                  dataset,
-                 transform=None,
-                 mapping_dir=None,
-                 mapping_transform=None):
+                 transform="train"):
+        self.cfg = cfg
         self.dataset = dataset
         self.transform = transform
-        self.mapping_dir = mapping_dir
-        self.mapping_transform = mapping_transform
+        self.base_transforms_list = [
+                T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=InterpolationMode.BICUBIC),
+                T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
+                T.Pad(cfg.INPUT.PADDING),
+                T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
+                T.ToTensor(),
+                T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD),
+                RandomErasing(probability=cfg.INPUT.RE_PROB, mode='pixel', max_count=1, device='cpu'),
+            ] if self.transform == "train" else [
+                T.Resize(cfg.INPUT.SIZE_TEST),
+                T.ToTensor(),
+                T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)
+            ]
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, index):
+        tranforms_list = self.base_transforms_list
+        mapping_transforms_list = self.base_transforms_list
+        if self.transform == "train":
+            train_insert_list = []
+            mapping_insert_list = []
+            if self.cfg.DATALOADER.USE_COLOR_JITTER:
+                train_insert_list.append(T.RandomApply(
+                    [T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
+                    p=0.8
+                ))
+            if self.cfg.DATALOADER.USE_GRAYSCALE:
+                gray_random = torch.rand(1)
+                if gray_random < 0.2:
+                    def grayscale(img):
+                        num_output_channels = F.get_image_num_channels(img)
+                        return F.rgb_to_grayscale(img, num_output_channels=num_output_channels)
+                    train_insert_list.append(grayscale)
+                    if self.cfg.DATALOADER.MAPPING_GRAYSCALE:
+                        mapping_insert_list.append(grayscale)
+
+            tranforms_list = self.base_transforms_list[:1] + train_insert_list + self.base_transforms_list[1:]
+            mapping_transforms_list = self.base_transforms_list[:1] + mapping_insert_list + self.base_transforms_list[1:]
+
         img_path, pid, camid, trackid = self.dataset[index]
         img = read_image(img_path)
+        img = T.Compose(tranforms_list)(img)
 
-        if self.transform is not None:
-            img = self.transform(img)
-
-        mapped_img = None
-        if self.mapping_dir:
-            image_name = os.path.basename(img_path)
-            folder_name = os.path.basename(os.path.dirname(img_path))
-            mapped_path = os.path.join(self.mapping_dir, folder_name, image_name)
+        mapped_img = img
+        if self.transform == "train" and self.cfg.SOLVER.USE_CONTRASTIVE:
+            mapped_path = img_path
+            if self.cfg.DATALOADER.MAPPING_DIR:
+                image_name = os.path.basename(mapped_path)
+                folder_name = os.path.basename(os.path.dirname(mapped_path))
+                mapped_path = os.path.join(self.cfg.DATALOADER.MAPPING_DIR, folder_name, image_name)
             mapped_img = read_image(mapped_path)
+            mapped_img = T.Compose(mapping_transforms_list)(mapped_img)
 
-            if self.mapping_transform is not None:
-                mapped_img = self.mapping_transform(mapped_img)
-
-        return img, pid, camid, trackid, img_path, mapped_img if self.mapping_dir else img
+        return img, pid, camid, trackid, img_path, mapped_img
         #  return img, pid, camid, trackid,img_path.split('/')[-1]
