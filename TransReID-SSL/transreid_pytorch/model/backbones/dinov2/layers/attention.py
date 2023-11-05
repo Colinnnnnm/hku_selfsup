@@ -13,6 +13,8 @@ import logging
 from torch import Tensor
 from torch import nn
 
+from visualizer import get_local
+
 
 logger = logging.getLogger("dinov2")
 
@@ -46,6 +48,7 @@ class Attention(nn.Module):
         self.proj = nn.Linear(dim, dim, bias=proj_bias)
         self.proj_drop = nn.Dropout(proj_drop)
 
+    @get_local('attn')
     def forward(self, x: Tensor) -> Tensor:
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)

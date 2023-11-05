@@ -142,7 +142,10 @@ class CUHK03(BaseImageDataset):
             unique_pids = set()
             for idx in idxs:
                 img_name = filelist[idx][0]
-                camid = int(img_name.split('_')[2]) - 1 # make it 0-based
+                campid = int(img_name.split('_')[0])
+                viewid = int(img_name.split('_')[2])
+                camid = (campid - 1) * 2 + viewid - 1
+                # camid = int(img_name.split('_')[2]) - 1 # make it 0-based
                 pid = pids[idx]
                 if relabel:
                     pid = pid2label[pid]
@@ -321,7 +324,10 @@ class CUHK03_grey(BaseImageDataset):
             unique_pids = set()
             for idx in idxs:
                 img_name = filelist[idx][0]
-                camid = int(img_name.split('_')[2]) - 1  # make it 0-based
+                campid = int(img_name.split('_')[0])
+                viewid = int(img_name.split('_')[2])
+                camid = (campid - 1) * 2 + viewid - 1
+                # camid = int(img_name.split('_')[2]) - 1  # make it 0-based
                 pid = pids[idx]
                 if relabel:
                     pid = pid2label[pid]
