@@ -42,6 +42,8 @@ def visualize_cls(att_map, imgpath, output_dir, grid_size=14, alpha=0.6):
 
     fig.savefig(os.path.join(output_dir, f"{image_fname}_attn.png"))
 
+    plt.close(fig)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ReID Baseline Training")
     parser.add_argument(
@@ -89,23 +91,25 @@ if __name__ == "__main__":
 
     model.eval()
 
-    img, pid, camid, camids, target_view, imgpath, mapped_img = next(iter(train_loader_normal))
-    get_local.clear()
-    img = img.to(device)
-    mapped_img = mapped_img.to(device)
-    camids = camids.to(device)
-    target_view = target_view.to(device)
-    feat = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
+    for idx, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(train_loader_normal):
+        if idx >= cfg.DATALOADER.MAX_ROUND:
+            break
+        get_local.clear()
+        img = img.to(device)
+        mapped_img = mapped_img.to(device)
+        camids = camids.to(device)
+        target_view = target_view.to(device)
+        feat = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
 
-    cache = get_local.cache
-    attention_maps = cache['Attention.forward']
-    last_attention_map = torch.from_numpy(attention_maps[-1])
-    nh = last_attention_map.shape[1]
-    last_attention_map = last_attention_map[0, :, 0, 1:].reshape(nh, -1)
-    last_attention_map = torch.mean(last_attention_map, dim=0).unsqueeze(0)
+        cache = get_local.cache
+        attention_maps = cache['Attention.forward']
+        last_attention_map = torch.from_numpy(attention_maps[-1])
+        nh = last_attention_map.shape[1]
+        last_attention_map = last_attention_map[0, :, 0, 1:].reshape(nh, -1)
+        last_attention_map = torch.mean(last_attention_map, dim=0).unsqueeze(0)
 
-    w_featmap, h_featmap = 9, 18
+        w_featmap, h_featmap = 9, 18
 
-    print(last_attention_map.shape)
+        print(last_attention_map.shape)
 
-    visualize_cls(last_attention_map.numpy(), imgpath, output_dir, grid_size=(h_featmap, w_featmap))
+        visualize_cls(last_attention_map.numpy(), imgpath, output_dir, grid_size=(h_featmap, w_featmap))
