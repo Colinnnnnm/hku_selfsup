@@ -25,24 +25,26 @@ def visualize_cls(att_map, imgpath, output_dir, grid_size=14, alpha=0.6):
     image_fname = os.path.basename(imgpath)
     image = Image.open(imgpath)
 
-    mask = att_map.reshape(grid_size[0], grid_size[1])
-    mask = Image.fromarray(mask).resize(image.size)
+    for idx, head in enumerate(att_map, start=1):
 
-    mask = mask / np.max(mask)
+        mask = head.reshape(grid_size[0], grid_size[1])
+        mask = Image.fromarray(mask).resize(image.size)
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 7))
-    fig.tight_layout()
+        mask = mask / np.max(mask)
 
-    ax[0].imshow(image)
-    ax[0].axis('off')
+        fig, ax = plt.subplots(1, 2, figsize=(10, 7))
+        fig.tight_layout()
 
-    ax[1].imshow(image)
-    ax[1].imshow(mask, alpha=alpha, cmap='rainbow')
-    ax[1].axis('off')
+        ax[0].imshow(image)
+        ax[0].axis('off')
 
-    fig.savefig(os.path.join(output_dir, f"{image_fname}_attn.png"))
+        ax[1].imshow(image)
+        ax[1].imshow(mask, alpha=alpha, cmap='rainbow')
+        ax[1].axis('off')
 
-    plt.close(fig)
+        fig.savefig(os.path.join(output_dir, f"{image_fname}_attn_{idx}.png"))
+
+        plt.close(fig)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ReID Baseline Training")
@@ -106,7 +108,7 @@ if __name__ == "__main__":
         last_attention_map = torch.from_numpy(attention_maps[-1])
         nh = last_attention_map.shape[1]
         last_attention_map = last_attention_map[0, :, 0, 1:].reshape(nh, -1)
-        last_attention_map = torch.mean(last_attention_map, dim=0).unsqueeze(0)
+        #last_attention_map = torch.mean(last_attention_map, dim=0).unsqueeze(0)#separate head, show attention map on different domain and baseline
 
         w_featmap, h_featmap = 9, 18
 
