@@ -33,7 +33,7 @@ def visualize_cls(attn_map, imgpath, output_dir, grid_size=14, alpha=0.6):
 
     fig, ax = plt.subplots(1, (1 + nh), figsize=(1 + nh, 2))
 
-    ax[0].imshow(image)
+    ax[0].imshow(image, cmap='gray', vmin=0, vmax=255)
     ax[0].axis('off')
 
     for idx, head in enumerate(attn, start=1):
@@ -43,7 +43,7 @@ def visualize_cls(attn_map, imgpath, output_dir, grid_size=14, alpha=0.6):
 
         mask = mask / np.max(mask)
 
-        ax[idx].imshow(image)
+        ax[idx].imshow(image, cmap='gray', vmin=0, vmax=255)
         ax[idx].imshow(mask, alpha=alpha, cmap='rainbow')
         ax[idx].axis('off')
 
