@@ -31,7 +31,7 @@ def visualize_cls(attn_map, imgpath, output_dir, grid_size=14, alpha=0.6):
     image_fname = os.path.basename(imgpath)
     image = Image.open(imgpath)
 
-    fig, ax = plt.subplots(1, (1 + nh), figsize=(7, 2))
+    fig, ax = plt.subplots(1, (1 + nh), figsize=(1 + nh, 2))
 
     ax[0].imshow(image)
     ax[0].axis('off')
