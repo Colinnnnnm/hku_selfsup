@@ -38,13 +38,14 @@ def visualize_cls(attn_map, imgpath, output_dir, grid_size=14, alpha=0.6):
 
     for idx, head in enumerate(attn, start=1):
 
+        head = (head - np.min(head)) * 255 / (np.max(head) - np.min(head))
+
         mask = head.reshape(grid_size[0], grid_size[1])
         mask = Image.fromarray(mask).resize(image.size)
-
         mask = mask / np.max(mask)
 
         ax[idx].imshow(image, cmap='gray', vmin=0, vmax=255)
-        ax[idx].imshow(mask, alpha=alpha, cmap='rainbow')
+        ax[idx].imshow(mask, alpha=alpha, cmap='rainbow', vmin=0, vmax=1)
         ax[idx].axis('off')
 
     fig.tight_layout()
