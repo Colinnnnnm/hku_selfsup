@@ -66,7 +66,7 @@ if __name__ == "__main__":
     if args.config_file != "":
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
-    cfg.freeze()
+    #cfg.freeze()
 
     output_dir = cfg.OUTPUT_DIR
     if output_dir and not os.path.exists(output_dir):
@@ -84,36 +84,72 @@ if __name__ == "__main__":
 
     os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
 
-    train_loader, train_loader_normal, val_loader, num_query, num_classes, camera_num, view_num = make_dataloader(cfg)
-
-    model = make_model(cfg, num_class=num_classes, camera_num=camera_num, view_num = view_num)
-    model.load_param(cfg.TEST.WEIGHT)
-
     # Visualizing Dog Image
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    if device:
-        if torch.cuda.device_count() > 1:
-            print('Using {} GPUs for inference'.format(torch.cuda.device_count()))
-            model = nn.DataParallel(model)
-        model.to(device)
+    fig, ax = plt.subplots(6, 13, figsize=(13, 12))
 
-    model.eval()
+    for did, dataset_name in enumerate(["market1501", "market1501_grey", "duke", "duke_grey", "cuhk03", "cuhk03_grey"]):
+        cfg.DATASETS.NAMES = dataset_name
 
-    for idx, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(train_loader_normal):
-        if idx >= cfg.DATALOADER.MAX_ROUND:
-            break
-        get_local.clear()
-        img = img.to(device)
-        mapped_img = mapped_img.to(device)
-        camids = camids.to(device)
-        target_view = target_view.to(device)
-        feat = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
+        train_loader, train_loader_normal, val_loader, num_query, num_classes, camera_num, view_num = make_dataloader(cfg)
 
-        cache = get_local.cache
-        attention_maps = cache['Attention.forward']
-        last_attention_map = attention_maps[-1]
+        model = make_model(cfg, num_class=num_classes, camera_num=camera_num, view_num = view_num)
+        model.load_param(cfg.TEST.WEIGHT)
 
-        w_featmap, h_featmap = 9, 18
+        if device:
+            if torch.cuda.device_count() > 1:
+                print('Using {} GPUs for inference'.format(torch.cuda.device_count()))
+                model = nn.DataParallel(model)
+            model.to(device)
 
-        visualize_cls(last_attention_map, imgpath, output_dir, grid_size=(h_featmap, w_featmap))
+        model.eval()
+
+        for idx, (img, pid, camid, camids, target_view, imgpath, mapped_img) in enumerate(train_loader_normal):
+            if idx >= cfg.DATALOADER.MAX_ROUND:
+                break
+            get_local.clear()
+            img = img.to(device)
+            mapped_img = mapped_img.to(device)
+            camids = camids.to(device)
+            target_view = target_view.to(device)
+            feat = model(img, mapped_x=mapped_img, cam_label=camids, view_label=target_view)
+
+            cache = get_local.cache
+            attention_maps = cache['Attention.forward']
+            last_attention_map = attention_maps[-1]
+
+            w_featmap, h_featmap = 9, 18
+
+            grid_size = (h_featmap, w_featmap)
+            if not isinstance(grid_size, tuple):
+                grid_size = (grid_size, grid_size)
+
+            attn_map_torch = torch.from_numpy(last_attention_map)
+            nh = attn_map_torch.shape[1]
+            attn_torch = attn_map_torch[0, :, 0, 1:].reshape(nh, -1)
+            # last_attention_map = torch.mean(last_attention_map, dim=0).unsqueeze(0)#separate head, show attention map on different domain and baseline
+            attn = attn_torch.numpy()
+
+            imgpath = imgpath[0]
+            image_fname = os.path.basename(imgpath)
+            image = Image.open(imgpath)
+
+            ax[did][0].imshow(image, cmap='gray', vmin=0, vmax=255)
+            ax[did][0].axis('off')
+
+            for hid, head in enumerate(attn, start=1):
+                head = ((head - np.min(head)) / (np.max(head) - np.min(head)) * 255).astype(np.uint8)
+
+                mask = head.reshape(grid_size[0], grid_size[1])
+                mask = Image.fromarray(mask, mode='L').resize(image.size)
+                # mask = mask / np.max(mask)
+
+                ax[did][hid].imshow(image, cmap='gray', vmin=0, vmax=255)
+                ax[did][hid].imshow(mask, alpha=0.6, cmap='rainbow', vmin=0, vmax=255)
+                ax[did][hid].axis('off')
+
+    fig.tight_layout()
+    fig.savefig(os.path.join(output_dir, f"{cfg.MODEL.NAME}_attn.png"))
+
+    plt.close(fig)
