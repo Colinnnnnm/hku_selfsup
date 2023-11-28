@@ -231,11 +231,12 @@ class Backbone(nn.Module):
             feat = self.dropout(feat)
 
         if self.training:
+            z0, z1 = None, None
             if self.cos_layer:
                 cls_score = self.arcface(feat, label)
             else:
                 cls_score = self.classifier(feat)
-            return cls_score, global_feat
+            return cls_score, global_feat, (z0, z1)
         else:
             if self.neck_feat == 'after':
                 return feat
