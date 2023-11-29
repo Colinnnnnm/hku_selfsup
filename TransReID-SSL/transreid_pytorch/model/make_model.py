@@ -11,6 +11,7 @@ from .backbones.sam.image_encoder import vit_base_patch16_1024_sam, vit_large_pa
 from .backbones.dino.vision_transformer import vit_base_patch8_224_dino, vit_small_patch8_224_dino, vit_base_patch16_224_dino, vit_small_patch16_224_dino
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
 from .backbones.resnet_ibn_a import resnet50_ibn_a,resnet101_ibn_a
+from .backbones.deit3.vision_transformer import vit_base_patch16_224_deit, vit_small_patch16_224_deit
 
 def shuffle_unit(features, shift, group, begin=1):
 
@@ -588,7 +589,9 @@ __factory_T_type = {
     'vit_small_patch16_224_dinov2': vit_small_patch14_224_dinov2,
     'vit_base_patch16_224_dinov2': vit_base_patch14_224_dinov2,
     'vit_base_patch16_1024_sam': vit_base_patch16_1024_sam,
-    'vit_large_patch16_1024_sam': vit_large_patch16_1024_sam
+    'vit_large_patch16_1024_sam': vit_large_patch16_1024_sam,
+    'vit_base_patch16_224_deit': vit_base_patch16_224_deit,
+    'vit_small_patch16_224_deit': vit_small_patch16_224_deit
 }
 
 def make_model(cfg, num_class, camera_num, view_num):
