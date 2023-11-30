@@ -545,6 +545,7 @@ def vit_base_patch16_224_deit(
         **kwargs):
     model = vit_models(
         img_size=img_size, patch_size=16,
-        stride_size=stride_size, embed_dim=512, depth=12, num_heads=8, mlp_ratio=4, qkv_bias=True,
+        stride_size=stride_size, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6), block_layers=Layer_scale_init_Block, **kwargs)
+    model.in_planes = 768
     return model
